@@ -1,0 +1,86 @@
+{
+    "machines": [
+      { "type_id": 0, "type_name": "Assembler", "count": 4 },
+      { "type_id": 1, "type_name": "Smeltery", "count": 2 },
+      { "type_id": 2, "type_name": "Extruder", "count": 2 },
+      { "type_id": 3, "type_name": "Sawmill", "count": 2 }
+    ],
+    "job_templates": [
+      {
+        "name": "Bicycle",
+        "operations": [
+          {
+            "name": "Bicycle Assembly",
+            "machine_type": "Assembler",
+            "processing_time": "60m",
+            "children": [
+              {
+                "name": "Frame Construction",
+                "machine_type": "Assembler",
+                "processing_time": "45m",
+                "children": [
+                  { "name": "Tube Smelting", "machine_type": "Smeltery", "processing_time": "30m" },
+                  { "name": "Fork Extrusion", "machine_type": "Extruder", "processing_time": "20m" }
+                ]
+              },
+              {
+                "name": "Wheel Set",
+                "machine_type": "Extruder",
+                "processing_time": "25m"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Scooter",
+        "operations": [
+          {
+            "name": "Scooter Assembly",
+            "machine_type": "Assembler",
+            "processing_time": "40m",
+            "children": [
+              {
+                "name": "Handlebar Unit",
+                "machine_type": "Extruder",
+                "processing_time": "20m",
+                "children": [
+                  { "name": "Metal Casting", "machine_type": "Smeltery", "processing_time": "25m" }
+                ]
+              },
+              {
+                "name": "Deck Sawing",
+                "machine_type": "Sawmill",
+                "processing_time": "15m"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Skateboard",
+        "operations": [
+          {
+            "name": "Skateboard Assembly",
+            "machine_type": "Assembler",
+            "processing_time": "25m",
+            "children": [
+              {
+                "name": "Deck Lamination",
+                "machine_type": "Sawmill",
+                "processing_time": "35m",
+                "children": [
+                  { "name": "Wood Cutting", "machine_type": "Sawmill", "processing_time": "15m" }
+                ]
+              },
+              {
+                "name": "Truck Casting",
+                "machine_type": "Smeltery",
+                "processing_time": "20m"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }

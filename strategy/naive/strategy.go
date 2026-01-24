@@ -32,7 +32,6 @@ func (s *Strategy) Plan(
 	machineTypeIndex := initMachineTypeIndex(machines)
 
 	solution := base.Solution{}
-
 	for _, job := range jobs {
 		jobSolution := planJob(job, startTime, occupiedMap, machineTypeIndex)
 		solution.Jobs = append(solution.Jobs, jobSolution)
@@ -71,7 +70,6 @@ func planJob(
 		operationSolution := planOperation(operation, startTime, occupiedMap, machineTypeIndex)
 		jobSolution.OperationSolutions = append(jobSolution.OperationSolutions, operationSolution)
 	}
-
 	return jobSolution
 }
 

@@ -50,9 +50,9 @@ func generateMachineIndexMap(machines []*base.Machine) map[base.MachineID]int {
 }
 
 func generateYAxisCategories(machines []*base.Machine) []string {
-	categories := make([]string, len(machines))
+	categories := make([]string, 0, len(machines))
 	for _, m := range machines {
-		categories = append(categories, fmt.Sprintf("%s [ID: %d]", m.Type.String(), m.ID))
+		categories = append(categories, fmt.Sprintf("%s [ID: %d]", m.Name, m.ID))
 	}
 	return categories
 }

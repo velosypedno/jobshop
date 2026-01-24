@@ -95,7 +95,7 @@ func (o *Operation) formatTree(level int) string {
 		indent = " ├─ "
 	}
 
-	sb.WriteString(fmt.Sprintf("%s [%d] %s (%s, %v)\n",
+	sb.WriteString(fmt.Sprintf("%s [%d] %s (%d, %v)\n",
 		indent,
 		o.ID,
 		o.Name,
