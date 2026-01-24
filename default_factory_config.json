@@ -2,7 +2,7 @@
     "machines": [
       { "type_id": 0, "type_name": "Assembler", "count": 4 },
       { "type_id": 1, "type_name": "Smeltery", "count": 2 },
-      { "type_id": 2, "type_name": "Extruder", "count": 2 },
+      { "type_id": 2, "type_name": "Extruder", "count": 1 },
       { "type_id": 3, "type_name": "Sawmill", "count": 2 }
     ],
     "job_templates": [

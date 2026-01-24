@@ -18,10 +18,47 @@ const renderItemJS = `function (params, api) {
     var start = api.coord([api.value(1), categoryIndex]); 
     var end = api.coord([api.value(2), categoryIndex]); 
     var height = api.size([0, 1])[1] * 0.6; 
-    var rectShape = echarts.graphic.clipRectByRect({ x: start[0], y: start[1] - height / 2, width: Math.max(end[0] - start[0], 1), height: height }, { x: params.coordSys.x, y: params.coordSys.y, width: params.coordSys.width, height: params.coordSys.height }); 
-    return rectShape && { type: 'rect', transition: ['shape'], shape: rectShape, style: api.style() }; 
-}`
+    var width = Math.max(end[0] - start[0], 1);
 
+    var rectShape = echarts.graphic.clipRectByRect({ 
+        x: start[0], 
+        y: start[1] - height / 2, 
+        width: width, 
+        height: height 
+    }, { 
+        x: params.coordSys.x, 
+        y: params.coordSys.y, 
+        width: params.coordSys.width, 
+        height: params.coordSys.height 
+    });
+
+    var operationName = api.value(3);
+
+    return rectShape && { 
+        type: 'rect', 
+        transition: ['shape'], 
+        shape: rectShape, 
+        style: api.style({
+            stroke: '#ffffff',
+            lineWidth: 1
+        }),
+        textContent: {
+            timeInc: 10,
+            style: {
+                text: width > 20 ? operationName : '',
+                fill: '#fff',
+                fontSize: 10,
+                fontWeight: 'normal',
+                fontFamily: 'sans-serif',
+                textShadowColor: 'rgba(0,0,0,0.4)',
+                textShadowBlur: 2
+            }
+        },
+        textConfig: {
+            position: 'inside'
+        }
+    }; 
+}`
 const renderTooltipJS = `function(p){
 	var dateStart = new Date(p.value[1]);
 	var dateEnd = new Date(p.value[2]);
