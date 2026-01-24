@@ -12,7 +12,7 @@ type MissingMachinesError struct {
 }
 
 func (e *MissingMachinesError) Error() string {
-	var types []string
+	types := make([]string, len(e.MissingTypes))
 	for _, t := range e.MissingTypes {
 		types = append(types, t.String())
 	}

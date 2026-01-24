@@ -34,7 +34,7 @@ func (s *Strategy) Plan(
 	solution := base.Solution{}
 
 	for _, job := range jobs {
-		jobSolution := planJob(job, machines, startTime, occupiedMap, machineTypeIndex)
+		jobSolution := planJob(job, startTime, occupiedMap, machineTypeIndex)
 		solution.Jobs = append(solution.Jobs, jobSolution)
 	}
 
@@ -59,7 +59,6 @@ func initMachineTypeIndex(machines []*base.Machine) base.MachineTypeIndex {
 
 func planJob(
 	job *base.Job,
-	machines []*base.Machine,
 	startTime time.Time,
 	occupiedMap base.MachineTimeSlots,
 	machineTypeIndex base.MachineTypeIndex,
@@ -69,7 +68,7 @@ func planJob(
 		OperationSolutions: []*base.OperationSolution{},
 	}
 	for _, operation := range job.Operations {
-		operationSolution := planOperation(operation, machines, startTime, occupiedMap, machineTypeIndex)
+		operationSolution := planOperation(operation, startTime, occupiedMap, machineTypeIndex)
 		jobSolution.OperationSolutions = append(jobSolution.OperationSolutions, operationSolution)
 	}
 
@@ -78,7 +77,6 @@ func planJob(
 
 func planOperation(
 	operation *base.Operation,
-	machines []*base.Machine,
 	startTime time.Time,
 	occupiedMap base.MachineTimeSlots,
 	machineTypeIndex base.MachineTypeIndex,
@@ -91,7 +89,7 @@ func planOperation(
 	for _, child := range operation.ChildOperations {
 		operationSolution.ChildSolutions = append(
 			operationSolution.ChildSolutions,
-			planOperation(child, machines, startTime, occupiedMap, machineTypeIndex))
+			planOperation(child, startTime, occupiedMap, machineTypeIndex))
 	}
 	lastChildEndTime, err := operationSolution.GetLastChildCompletionTime()
 	if errors.Is(err, base.ErrNoChildrenFound) {
@@ -123,7 +121,6 @@ func planOperation(
 	occupiedMap[targetMachineID] = append(occupiedMap[targetMachineID], targetPeriod)
 
 	return operationSolution
-
 }
 
 func findBestSlot(

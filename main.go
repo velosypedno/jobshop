@@ -40,7 +40,12 @@ func main() {
 	fmt.Println(solution)
 
 	solutionChart := chart.GenerateFromSolution(solution, factory.Machines, metaInfo)
-	f, _ := os.Create("bar.html")
-	solutionChart.Render(f)
-
+	f, err := os.Create("bar.html")
+	if err != nil {
+		panic(err)
+	}
+	err = solutionChart.Render(f)
+	if err != nil {
+		panic(err)
+	}
 }
