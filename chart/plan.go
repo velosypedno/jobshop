@@ -10,6 +10,7 @@ import (
 	"github.com/velosypedno/resource-allocation/factory"
 
 	"github.com/go-echarts/go-echarts/v2/charts"
+	"github.com/go-echarts/go-echarts/v2/components"
 	"github.com/go-echarts/go-echarts/v2/opts"
 )
 
@@ -235,4 +236,28 @@ func GenerateFromSolution(
 	chart := createBaseCustomChart(machines, period, description)
 	addSolutionSeries(chart, solution, machines)
 	return chart
+}
+
+func GenerateFromSolutions(
+	results []factory.PlanResult,
+	machines []*base.Machine,
+) *components.Page {
+
+	sortMachines(machines)
+
+	page := components.NewPage()
+	page.SetLayout(components.PageNoneLayout)
+	page.PageTitle = "Multi-Strategy Comparison"
+
+	for _, res := range results {
+		period := res.Solution.GetWorkFlowPeriod()
+		description := formatStrategyDescription(res.Info)
+
+		chart := createBaseCustomChart(machines, period, description)
+		addSolutionSeries(chart, res.Solution, machines)
+
+		page.AddCharts(chart)
+	}
+
+	return page
 }

@@ -33,16 +33,18 @@ type JobTemplate struct {
 }
 
 type Job struct {
-	ID         JobID
-	Name       string
-	Operations []*Operation
+	ID                  JobID
+	Name                string
+	Operations          []*Operation
+	FlattenedOperations []*Operation
 }
 
 func CreateJob(id JobID, template JobTemplate) Job {
 	job := Job{
-		ID:         id,
-		Name:       template.Name,
-		Operations: []*Operation{},
+		ID:                  id,
+		Name:                template.Name,
+		Operations:          []*Operation{},
+		FlattenedOperations: []*Operation{},
 	}
 
 	counter := 1
@@ -50,7 +52,29 @@ func CreateJob(id JobID, template JobTemplate) Job {
 		job.Operations = append(job.Operations, instantiateOperation(id, operation, &counter))
 	}
 
+	for _, rootOp := range job.Operations {
+		job.buildFlattenedList(rootOp)
+	}
+
 	return job
+}
+
+func (j *Job) buildFlattenedList(op *Operation) {
+	for _, child := range op.ChildOperations {
+		j.buildFlattenedList(child)
+	}
+	j.FlattenedOperations = append(j.FlattenedOperations, op)
+}
+
+func (j *Job) OperationsCount() int {
+	return len(j.FlattenedOperations)
+}
+
+func (j *Job) GetOperation(index int) *Operation {
+	if index < 0 || index >= len(j.FlattenedOperations) {
+		return nil
+	}
+	return j.FlattenedOperations[index]
 }
 
 func instantiateOperation(jobID JobID, t OperationTemplate, counter *int) *Operation {

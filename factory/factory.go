@@ -14,16 +14,21 @@ type PlannerStrategy interface {
 	Description() string
 }
 
+type PlanResult struct {
+	Solution *base.Solution
+	Info     SchedulingInfo
+}
+
 type Factory struct {
 	Jobs      []*base.Job
 	Machines  []*base.Machine
 	Templates map[string]base.JobTemplate
-	Planner   PlannerStrategy
+
+	Planners []PlannerStrategy
 
 	machineTypeRegistry map[string]base.MachineType
-
-	jobCounter     int
-	machineCounter int
+	jobCounter          int
+	machineCounter      int
 }
 
 func (f *Factory) Configure(machineConfigs []parser.MachineConfig, templates []base.JobTemplate) {
@@ -47,42 +52,52 @@ func (f *Factory) Configure(machineConfigs []parser.MachineConfig, templates []b
 	}
 }
 
-func (f *Factory) SetPlanner(planner PlannerStrategy) {
-	f.Planner = planner
+func (f *Factory) SetPlanners(planners ...PlannerStrategy) {
+	f.Planners = planners
 }
 
-func (f *Factory) Plan(orders []parser.OrderDTO, startTime time.Time) (*base.Solution, SchedulingInfo, error) {
-	if f.Planner == nil {
-		return &base.Solution{}, SchedulingInfo{}, fmt.Errorf("planner strategy is not set")
+func (f *Factory) Plan(orders []parser.OrderDTO, startTime time.Time) ([]PlanResult, error) {
+	if len(f.Planners) == 0 {
+		return nil, fmt.Errorf("no planner strategies set")
 	}
-
-	startPlanning := time.Now()
 
 	jobs, err := f.createJobsFromOrders(orders)
 	if err != nil {
-		return &base.Solution{}, SchedulingInfo{}, err
-	}
-	solution, machineSlotsMap := f.Planner.Plan(jobs, f.Machines, startTime)
-
-	metaInfo := SchedulingMetaInfo{
-		StrategyName:        f.Planner.Name(),
-		StrategyDescription: f.Planner.Description(),
-		SchedulingTime:      time.Since(startPlanning),
+		return nil, err
 	}
 
-	workflowPeriod := solution.GetWorkFlowPeriod()
-	makeSpan := workflowPeriod.Duration()
+	results := make([]PlanResult, 0, len(f.Planners))
 
-	utilization := 0.0
-	if makeSpan > 0 {
-		utilization = machineSlotsMap.GetUtilizationLevel(makeSpan)
+	for _, planner := range f.Planners {
+		startPlanning := time.Now()
+
+		solution, machineSlotsMap := planner.Plan(jobs, f.Machines, startTime)
+
+		metaInfo := SchedulingMetaInfo{
+			StrategyName:        planner.Name(),
+			StrategyDescription: planner.Description(),
+			SchedulingTime:      time.Since(startPlanning),
+		}
+
+		workflowPeriod := solution.GetWorkFlowPeriod()
+		makeSpan := workflowPeriod.Duration()
+
+		utilization := 0.0
+		if makeSpan > 0 {
+			utilization = machineSlotsMap.GetUtilizationLevel(makeSpan)
+		}
+
+		results = append(results, PlanResult{
+			Solution: solution,
+			Info: SchedulingInfo{
+				SchedulingMetaInfo: metaInfo,
+				MakeSpan:           makeSpan,
+				UtilizationLevel:   utilization,
+			},
+		})
 	}
 
-	return solution, SchedulingInfo{
-		SchedulingMetaInfo: metaInfo,
-		MakeSpan:           makeSpan,
-		UtilizationLevel:   utilization,
-	}, nil
+	return results, nil
 }
 
 func (f *Factory) createJobsFromOrders(orders []parser.OrderDTO) ([]*base.Job, error) {

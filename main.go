@@ -9,7 +9,9 @@ import (
 	"github.com/velosypedno/resource-allocation/chart"
 	"github.com/velosypedno/resource-allocation/factory"
 	"github.com/velosypedno/resource-allocation/parser"
+	"github.com/velosypedno/resource-allocation/strategy/annealing"
 	"github.com/velosypedno/resource-allocation/strategy/naive"
+	"github.com/velosypedno/resource-allocation/strategy/rnd"
 )
 
 func main() {
@@ -22,7 +24,7 @@ func main() {
 	ordersPath := os.Args[2]
 	customName := ""
 	if len(os.Args) > 3 {
-		customName = os.Args[3] + "_"
+		customName = "_" + os.Args[3]
 	}
 
 	machinesConfig, templates, err := parser.ParseFactoryConfig(factoryConfigPath)
@@ -33,7 +35,8 @@ func main() {
 
 	f := &factory.Factory{}
 	f.Configure(machinesConfig, templates)
-	f.SetPlanner(&naive.Strategy{})
+	annealingStrategy := annealing.New(100, 0.1, 0.99, 100, 15)
+	f.SetPlanners(&rnd.Strategy{}, &naive.Strategy{}, annealingStrategy)
 
 	startTime := time.Date(2022, 1, 1, 0, 0, 0, 0, time.Local)
 
@@ -43,13 +46,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	solution, metaInfo, err := f.Plan(orders, startTime)
+	results, err := f.Plan(orders, startTime)
 	if err != nil {
 		fmt.Printf("Error during planning: %v\n", err)
 		os.Exit(1)
 	}
 
-	solutionChart := chart.GenerateFromSolution(solution, f.Machines, metaInfo)
+	solutionsChart := chart.GenerateFromSolutions(results, f.Machines)
 
 	outputDir := "results"
 	if err := os.MkdirAll(outputDir, 0755); err != nil {
@@ -58,7 +61,7 @@ func main() {
 	}
 
 	timestamp := time.Now().Format("20060102-150405")
-	fileName := fmt.Sprintf("%splan_%s.html", customName, timestamp)
+	fileName := fmt.Sprintf("plan_%s%s.html", timestamp, customName)
 	fullPath := filepath.Join(outputDir, fileName)
 
 	outputFile, err := os.Create(fullPath)
@@ -68,7 +71,7 @@ func main() {
 	}
 	defer outputFile.Close()
 
-	err = solutionChart.Render(outputFile)
+	err = solutionsChart.Render(outputFile)
 	if err != nil {
 		fmt.Printf("Error rendering chart: %v\n", err)
 		os.Exit(1)
