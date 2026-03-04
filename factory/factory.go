@@ -9,7 +9,7 @@ import (
 )
 
 type PlannerStrategy interface {
-	Plan([]*base.Job, []*base.Machine, time.Time) (base.Solution, base.MachineTimeSlots)
+	Plan([]*base.Job, []*base.Machine, time.Time) (*base.Solution, base.MachineTimeSlots)
 	Name() string
 	Description() string
 }
@@ -51,16 +51,16 @@ func (f *Factory) SetPlanner(planner PlannerStrategy) {
 	f.Planner = planner
 }
 
-func (f *Factory) Plan(orders []parser.OrderDTO, startTime time.Time) (base.Solution, SchedulingInfo, error) {
+func (f *Factory) Plan(orders []parser.OrderDTO, startTime time.Time) (*base.Solution, SchedulingInfo, error) {
 	if f.Planner == nil {
-		return base.Solution{}, SchedulingInfo{}, fmt.Errorf("planner strategy is not set")
+		return &base.Solution{}, SchedulingInfo{}, fmt.Errorf("planner strategy is not set")
 	}
 
 	startPlanning := time.Now()
 
 	jobs, err := f.createJobsFromOrders(orders)
 	if err != nil {
-		return base.Solution{}, SchedulingInfo{}, err
+		return &base.Solution{}, SchedulingInfo{}, err
 	}
 	solution, machineSlotsMap := f.Planner.Plan(jobs, f.Machines, startTime)
 
