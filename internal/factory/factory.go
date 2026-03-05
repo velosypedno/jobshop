@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/velosypedno/resource-allocation/base"
-	"github.com/velosypedno/resource-allocation/parser"
+	"github.com/velosypedno/resource-allocation/internal/base"
+	"github.com/velosypedno/resource-allocation/internal/parser"
 )
 
 type PlannerStrategy interface {

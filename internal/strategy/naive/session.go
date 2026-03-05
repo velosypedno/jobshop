@@ -1,23 +1,16 @@
-package rnd
+package naive
 
 import (
 	"sort"
 	"time"
 
-	"github.com/velosypedno/resource-allocation/base"
+	"github.com/velosypedno/resource-allocation/internal/base"
 )
-
-type fullID struct {
-	jobID base.JobID
-	opID  base.OperationID
-}
 
 type session struct {
 	OccupiedMap      base.MachineTimeSlots
 	MachineTypeIndex base.MachineTypeIndex
 	StartTime        time.Time
-
-	results map[fullID]base.Period
 }
 
 func newSession(machines []*base.Machine, startTime time.Time) *session {
@@ -25,7 +18,6 @@ func newSession(machines []*base.Machine, startTime time.Time) *session {
 		OccupiedMap:      initTimeSlotsMap(machines),
 		MachineTypeIndex: initMachineTypeIndex(machines),
 		StartTime:        startTime,
-		results:          make(map[fullID]base.Period, 0),
 	}
 }
 
@@ -96,17 +88,4 @@ func (s *session) findEarliestGap(startTime time.Time, duration time.Duration, o
 		Start: candidateStart,
 		End:   candidateStart.Add(duration),
 	}
-}
-
-func (s *session) GetReadyTime(op *base.Operation) time.Time {
-	readyTime := s.StartTime
-	for _, child := range op.ChildOperations {
-		key := fullID{jobID: op.JobID, opID: child.ID}
-		if childPeriod, ok := s.results[key]; ok {
-			if childPeriod.End.After(readyTime) {
-				readyTime = childPeriod.End
-			}
-		}
-	}
-	return readyTime
 }

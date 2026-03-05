@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/velosypedno/resource-allocation/base"
+	"github.com/velosypedno/resource-allocation/internal/base"
 )
 
 func TestCreateJob_Flattening(t *testing.T) {

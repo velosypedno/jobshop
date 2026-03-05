@@ -6,12 +6,12 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/velosypedno/resource-allocation/chart"
-	"github.com/velosypedno/resource-allocation/factory"
-	"github.com/velosypedno/resource-allocation/parser"
-	"github.com/velosypedno/resource-allocation/strategy/annealing"
-	"github.com/velosypedno/resource-allocation/strategy/naive"
-	"github.com/velosypedno/resource-allocation/strategy/rnd"
+	"github.com/velosypedno/resource-allocation/internal/chart"
+	"github.com/velosypedno/resource-allocation/internal/factory"
+	"github.com/velosypedno/resource-allocation/internal/parser"
+	"github.com/velosypedno/resource-allocation/internal/strategy/annealing"
+	"github.com/velosypedno/resource-allocation/internal/strategy/naive"
+	"github.com/velosypedno/resource-allocation/internal/strategy/rnd"
 )
 
 func main() {

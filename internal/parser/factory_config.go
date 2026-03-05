@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/velosypedno/resource-allocation/base"
+	"github.com/velosypedno/resource-allocation/internal/base"
 )
 
 func ParseFactoryConfig(filePath string) ([]MachineConfig, []base.JobTemplate, error) {

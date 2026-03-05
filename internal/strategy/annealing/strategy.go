@@ -1,8 +1,8 @@
 package annealing
 
 import (
-	"github.com/velosypedno/resource-allocation/strategy/annealing/priority"
-	"github.com/velosypedno/resource-allocation/strategy/annealing/sequence"
+	"github.com/velosypedno/resource-allocation/internal/strategy/annealing/priority"
+	"github.com/velosypedno/resource-allocation/internal/strategy/annealing/sequence"
 )
 
 type Config struct {

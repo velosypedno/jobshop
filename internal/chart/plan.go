@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/velosypedno/resource-allocation/base"
-	"github.com/velosypedno/resource-allocation/factory"
+	"github.com/velosypedno/resource-allocation/internal/base"
+	"github.com/velosypedno/resource-allocation/internal/factory"
 
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/components"

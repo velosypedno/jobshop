@@ -1,33 +1,12 @@
-package naive
+package rnd
 
-import (
-	"errors"
-	"time"
-
-	"github.com/velosypedno/resource-allocation/base"
-)
-
-var ErrNoChildrenFound = errors.New("no children found")
+import "github.com/velosypedno/resource-allocation/internal/base"
 
 type OperationSolution struct {
 	Operation      *base.Operation
 	MachineID      base.MachineID
 	Period         base.Period
 	ChildSolutions []*OperationSolution
-}
-
-func (os *OperationSolution) GetLastChildCompletionTime() (time.Time, error) {
-	if len(os.ChildSolutions) == 0 {
-		return time.Time{}, ErrNoChildrenFound
-	}
-
-	maxTime := os.ChildSolutions[0].Period.End
-	for _, child := range os.ChildSolutions {
-		if child.Period.End.After(maxTime) {
-			maxTime = child.Period.End
-		}
-	}
-	return maxTime, nil
 }
 
 type JobSolution struct {

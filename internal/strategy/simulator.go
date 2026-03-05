@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/velosypedno/resource-allocation/base"
+	"github.com/velosypedno/resource-allocation/internal/base"
 )
 
 type SimulationResult struct {

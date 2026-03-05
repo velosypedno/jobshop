@@ -6,8 +6,8 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/velosypedno/resource-allocation/base"
-	"github.com/velosypedno/resource-allocation/strategy"
+	"github.com/velosypedno/resource-allocation/internal/base"
+	"github.com/velosypedno/resource-allocation/internal/strategy"
 )
 
 type Simulator interface {

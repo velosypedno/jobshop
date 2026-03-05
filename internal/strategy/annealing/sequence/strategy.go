@@ -6,7 +6,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/velosypedno/resource-allocation/base"
+	"github.com/velosypedno/resource-allocation/internal/base"
 )
 
 type Strategy struct {

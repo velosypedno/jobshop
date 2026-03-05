@@ -1,6 +1,6 @@
 package strategy
 
-import "github.com/velosypedno/resource-allocation/base"
+import "github.com/velosypedno/resource-allocation/internal/base"
 
 type OperationSolution struct {
 	Operation      *base.Operation

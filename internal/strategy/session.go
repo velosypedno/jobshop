@@ -1,10 +1,10 @@
-package sequence
+package strategy
 
 import (
 	"sort"
 	"time"
 
-	"github.com/velosypedno/resource-allocation/base"
+	"github.com/velosypedno/resource-allocation/internal/base"
 )
 
 type fullID struct {
@@ -17,7 +17,8 @@ type session struct {
 	MachineTypeIndex base.MachineTypeIndex
 	StartTime        time.Time
 
-	results map[fullID]base.Period
+	results          map[int]base.Period
+	assignedMachines map[int]base.MachineID
 }
 
 func newSession(machines []*base.Machine, startTime time.Time) *session {
@@ -25,7 +26,8 @@ func newSession(machines []*base.Machine, startTime time.Time) *session {
 		OccupiedMap:      initTimeSlotsMap(machines),
 		MachineTypeIndex: initMachineTypeIndex(machines),
 		StartTime:        startTime,
-		results:          make(map[fullID]base.Period, 0),
+		results:          make(map[int]base.Period, 0),
+		assignedMachines: make(map[int]base.MachineID),
 	}
 }
 
@@ -77,9 +79,10 @@ func (s *session) findEarliestGap(startTime time.Time, duration time.Duration, o
 	candidateStart := startTime
 
 	for _, slot := range occupied {
-		if slot.End.Before(candidateStart) {
+		if slot.End.Before(candidateStart) || slot.End.Equal(candidateStart) {
 			continue
 		}
+
 		if slot.Start.Sub(candidateStart) >= duration {
 			return base.Period{
 				Start: candidateStart,
@@ -98,11 +101,11 @@ func (s *session) findEarliestGap(startTime time.Time, duration time.Duration, o
 	}
 }
 
-func (s *session) GetReadyTime(op *base.Operation) time.Time {
+func (s *session) GetReadyTime(op *InternalOp) time.Time {
 	readyTime := s.StartTime
-	for _, child := range op.ChildOperations {
-		key := fullID{jobID: op.JobID, opID: child.ID}
-		if childPeriod, ok := s.results[key]; ok {
+
+	for _, childGlobalID := range op.ChildrenIDs {
+		if childPeriod, ok := s.results[childGlobalID]; ok {
 			if childPeriod.End.After(readyTime) {
 				readyTime = childPeriod.End
 			}
