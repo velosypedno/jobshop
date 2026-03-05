@@ -34,32 +34,40 @@ const renderItemJS = `function (params, api) {
     });
 
     var operationName = api.value(3);
+    
+    var isLargeEnough = width > 90;
 
-    return rectShape && { 
+    var rect = { 
         type: 'rect', 
         transition: ['shape'], 
         shape: rectShape, 
         style: api.style({
             stroke: '#ffffff',
-            lineWidth: 1
-        }),
-        textContent: {
-            timeInc: 10,
+            lineWidth: 0.5
+        })
+    };
+
+    if (isLargeEnough) {
+        rect.textContent = {
             style: {
-                text: width > 20 ? operationName : '',
+                text: operationName,
                 fill: '#fff',
                 fontSize: 10,
-                fontWeight: 'normal',
                 fontFamily: 'sans-serif',
                 textShadowColor: 'rgba(0,0,0,0.4)',
-                textShadowBlur: 2
+                textShadowBlur: 2,
+                overflow: 'truncate',
+                ellipsis: '..'
             }
-        },
-        textConfig: {
+        };
+        rect.textConfig = {
             position: 'inside'
-        }
-    }; 
+        };
+    }
+
+    return rectShape && rect; 
 }`
+
 const renderTooltipJS = `function(p){
 	var dateStart = new Date(p.value[1]);
 	var dateEnd = new Date(p.value[2]);
@@ -156,6 +164,22 @@ func createBaseCustomChart(machines []*base.Machine, period base.Period, descrip
 				FontWeight: "600",
 				Color:      "#222",
 				Margin:     15,
+			},
+		}),
+		charts.WithToolboxOpts(opts.Toolbox{
+			Show:  opts.Bool(true),
+			Right: "20",
+			Feature: &opts.ToolBoxFeature{
+				SaveAsImage: &opts.ToolBoxFeatureSaveAsImage{
+					Show:  opts.Bool(true),
+					Title: "Download PNG",
+					Type:  "png",
+				},
+				DataView: &opts.ToolBoxFeatureDataView{
+					Show:  opts.Bool(true),
+					Title: "Data View",
+					Lang:  []string{"Data View", "Close", "Refresh"},
+				},
 			},
 		}),
 		charts.WithGridOpts(opts.Grid{
