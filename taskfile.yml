@@ -4,6 +4,7 @@ vars:
   DEFAULT_DIR: default
   DEFAULT_CONFIG: "{{.DEFAULT_DIR}}/config.json"
   DEFAULT_ORDER: "{{.DEFAULT_DIR}}/order.json"
+  BINARY_NAME: scheduler
 
 tasks:
   default:
@@ -21,15 +22,24 @@ tasks:
       - test -f {{.DEFAULT_CONFIG}}
       - test -f {{.DEFAULT_ORDER}}
 
-  run:
-    desc: Run the application with config, order paths and optional filename
-    summary: |
-      Runs the program. 
-      Usage: task run -- [config_path] [order_path] [custom_name]
-      Example: task run -- config.json orders.json my_test_plan
+  build:
+    desc: Build the binary
     cmds:
-      - go run cmd/main.go {{.CONFIG | default .DEFAULT_CONFIG}} {{.ORDER | default .DEFAULT_ORDER}} {{.CLI_ARGS}}
+      - go build -o {{.BINARY_NAME}} cmd/main.go
 
+  run:
+    desc: Run the application with flags
+    summary: |
+      Runs the program using named flags.
+      Example: task run -- -n my_test_plan
+      Example: task run -- -c custom_config.json -o custom_orders.json
+    cmds:
+      - go run cmd/main.go --config {{.CONFIG | default .DEFAULT_CONFIG}} --orders {{.ORDER | default .DEFAULT_ORDER}} {{.CLI_ARGS}}
+
+  help:
+    desc: Show CLI help
+    cmds:
+      - go run cmd/main.go --help
   tidy:
     desc: Tidy go modules
     cmds:
