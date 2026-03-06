@@ -11,8 +11,10 @@ import (
 	"github.com/velosypedno/resource-allocation/internal/factory"
 	"github.com/velosypedno/resource-allocation/internal/parser"
 	"github.com/velosypedno/resource-allocation/internal/strategy/annealing"
+	"github.com/velosypedno/resource-allocation/internal/strategy/ga"
 	"github.com/velosypedno/resource-allocation/internal/strategy/naive"
 	"github.com/velosypedno/resource-allocation/internal/strategy/rnd"
+	"github.com/velosypedno/resource-allocation/internal/strategy/tabu"
 )
 
 type App struct {
@@ -34,12 +36,22 @@ func New(machinesConfig []parser.MachineConfig, templates []base.JobTemplate) *A
 	priorityBasedAnnealing := annealing.NewPriorityBased(annealingConfig)
 	randomStrategy := rnd.New()
 	naiveStrategy := naive.New()
+	gaStrategy := ga.New(16, 100, 0.05, 0.7, 0.125)
+	anotherGAStrategy := ga.New(64, 1000, 0.05, 0.7, 0.125)
+	morePopulationGAStrategy := ga.New(128, 1000, 0.05, 0.7, 0.125)
+	giantPopulationGAStrategy := ga.New(256, 2000, 0.03, 0.65, 0.125)
+	tabuStrategy := tabu.New(15, 500, 30)
 
 	f.SetPlanners(
 		randomStrategy,
 		naiveStrategy,
 		sequenceBasedAnnealing,
 		priorityBasedAnnealing,
+		tabuStrategy,
+		gaStrategy,
+		anotherGAStrategy,
+		morePopulationGAStrategy,
+		giantPopulationGAStrategy,
 	)
 
 	return &App{
