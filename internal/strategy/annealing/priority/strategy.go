@@ -7,11 +7,11 @@ import (
 	"time"
 
 	"github.com/velosypedno/resource-allocation/internal/base"
-	"github.com/velosypedno/resource-allocation/internal/strategy"
+	"github.com/velosypedno/resource-allocation/internal/simulator"
 )
 
 type Simulator interface {
-	Simulate(weights []float64) *strategy.SimulationResult
+	Simulate(weights []float64) *simulator.SimulationResult
 	TotalOperations() int
 }
 
@@ -64,7 +64,7 @@ func (s *Strategy) Plan(
 	startTime time.Time,
 ) (*base.Solution, base.MachineTimeSlots) {
 
-	sim := strategy.NewFactorySimulator(jobs, machines, startTime)
+	sim := simulator.NewFactorySimulator(jobs, machines, startTime)
 
 	n := sim.TotalOperations()
 	currentWeights := make([]float64, n)

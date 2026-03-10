@@ -1,4 +1,4 @@
-package strategy
+package simulator
 
 import "github.com/velosypedno/resource-allocation/internal/base"
 

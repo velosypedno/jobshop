@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/velosypedno/resource-allocation/internal/base"
-	"github.com/velosypedno/resource-allocation/internal/strategy"
+	"github.com/velosypedno/resource-allocation/internal/simulator"
 )
 
 type Strategy struct {
@@ -56,7 +56,7 @@ func (s *Strategy) Description() string {
 type individual struct {
 	weights []float64
 	fitness float64
-	result  *strategy.SimulationResult
+	result  *simulator.SimulationResult
 }
 
 func (s *Strategy) Plan(
@@ -64,7 +64,7 @@ func (s *Strategy) Plan(
 	machines []*base.Machine,
 	startTime time.Time,
 ) (*base.Solution, base.MachineTimeSlots) {
-	sim := strategy.NewFactorySimulator(jobs, machines, startTime)
+	sim := simulator.NewFactorySimulator(jobs, machines, startTime)
 	n := sim.TotalOperations()
 
 	population := make([]*individual, s.PopulationSize)

@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/velosypedno/resource-allocation/internal/base"
-	"github.com/velosypedno/resource-allocation/internal/strategy"
+	"github.com/velosypedno/resource-allocation/internal/simulator"
 )
 
 type Strategy struct {
@@ -52,7 +52,7 @@ func (s *Strategy) Plan(
 	machines []*base.Machine,
 	startTime time.Time,
 ) (*base.Solution, base.MachineTimeSlots) {
-	sim := strategy.NewFactorySimulator(jobs, machines, startTime)
+	sim := simulator.NewFactorySimulator(jobs, machines, startTime)
 	n := sim.TotalOperations()
 
 	currentWeights := make([]float64, n)
@@ -66,7 +66,7 @@ func (s *Strategy) Plan(
 	tabuList := make(map[move]int)
 
 	for iter := 0; iter < s.MaxIterations; iter++ {
-		var bestNeighborRes *strategy.SimulationResult
+		var bestNeighborRes *simulator.SimulationResult
 		var bestNeighborWeights []float64
 		var chosenMove move
 
