@@ -6,6 +6,7 @@ import (
 
 	"github.com/velosypedno/resource-allocation/internal/base"
 	"github.com/velosypedno/resource-allocation/internal/parser"
+	"go.uber.org/zap"
 )
 
 type PlanResult struct {
@@ -23,6 +24,14 @@ type Scheduler struct {
 	machineTypeRegistry map[string]base.MachineType
 	jobCounter          int
 	machineCounter      int
+}
+
+func (s *Scheduler) SetLogger(l *zap.Logger) {
+
+	for _, planner := range s.Planners {
+		planner.SetLogger(l)
+	}
+
 }
 
 func (f *Scheduler) Configure(machineConfigs []parser.MachineConfig, templates []base.JobTemplate) {
@@ -68,7 +77,7 @@ func (f *Scheduler) Plan(orders []parser.OrderDTO, startTime time.Time) ([]PlanR
 		solution, machineSlotsMap := planner.Plan(jobs, f.Machines, startTime)
 
 		metaInfo := SchedulingMetaInfo{
-			StrategyName:        planner.Name(),
+			StrategyType:        planner.Name(),
 			StrategyDescription: planner.Description(),
 			SchedulingTime:      time.Since(startPlanning),
 		}
@@ -114,7 +123,7 @@ func (f *Scheduler) createJobsFromOrders(orders []parser.OrderDTO) ([]*base.Job,
 }
 
 type SchedulingMetaInfo struct {
-	StrategyName        string
+	StrategyType        string
 	StrategyDescription string
 	SchedulingTime      time.Duration
 }

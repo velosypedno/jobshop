@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/velosypedno/resource-allocation/internal/base"
+	"go.uber.org/zap"
 )
 
 const name = "Random Search"
@@ -12,6 +13,8 @@ and schedules them based on the Earliest Slot principle, strictly adhering
 to technological dependencies (post-order traversal).`
 
 type Strategy struct{}
+
+func (_ Strategy) SetLogger(_ *zap.Logger) {}
 
 func New() *Strategy {
 	return &Strategy{}

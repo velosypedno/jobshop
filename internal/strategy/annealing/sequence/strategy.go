@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/velosypedno/resource-allocation/internal/base"
+	"go.uber.org/zap"
 )
 
 type Strategy struct {
@@ -16,6 +17,8 @@ type Strategy struct {
 	Iterations       int
 	SwapsPerMutation int
 }
+
+func (_ Strategy) SetLogger(_ *zap.Logger) {}
 
 func New(initialTemp, minTemp, alpha float64, iterations int, swaps int) *Strategy {
 	return &Strategy{

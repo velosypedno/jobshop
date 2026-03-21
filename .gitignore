@@ -2,3 +2,4 @@ vendor/
 *.html
 default/
 /scheduler
+*.log

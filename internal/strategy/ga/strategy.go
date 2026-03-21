@@ -6,6 +6,8 @@ import (
 	"sort"
 	"time"
 
+	"go.uber.org/zap"
+
 	"github.com/velosypedno/resource-allocation/internal/base"
 	"github.com/velosypedno/resource-allocation/internal/simulator"
 )
@@ -16,16 +18,25 @@ type Strategy struct {
 	MutationRate   float64
 	CrossoverRate  float64
 	ElitismRatio   float64
+
+	logger *zap.Logger
 }
 
 func New(popSize, generations int, mutationRate, crossoverRate, elitism float64) *Strategy {
+	l, _ := zap.NewProduction()
 	return &Strategy{
 		PopulationSize: popSize,
 		Generations:    generations,
 		MutationRate:   mutationRate,
 		CrossoverRate:  crossoverRate,
 		ElitismRatio:   elitism,
+
+		logger: l,
 	}
+}
+
+func (s *Strategy) SetLogger(l *zap.Logger) {
+	s.logger = l
 }
 
 func (s *Strategy) Name() string {
@@ -67,6 +78,13 @@ func (s *Strategy) Plan(
 	sim := simulator.NewFactorySimulator(jobs, machines, startTime)
 	n := sim.TotalOperations()
 
+	s.logger.Info("Starting resource allocation planning",
+		zap.String("strategy_type", s.Name()),
+		zap.Int("jobs_count", len(jobs)),
+		zap.Int("machines_count", len(machines)),
+		zap.Int("total_operations", n),
+	)
+
 	population := make([]*individual, s.PopulationSize)
 	for i := 0; i < s.PopulationSize; i++ {
 		weights := make([]float64, n)
@@ -87,10 +105,11 @@ func (s *Strategy) Plan(
 			return population[i].fitness > population[j].fitness
 		})
 
-		if g%10 == 0 {
-			fmt.Printf("[%s] Generation %d: Best Makespan = %v\n",
-				s.Name(), g, population[0].result.Cost)
-		}
+		s.logger.Info("Generation status",
+			zap.Int("gen", g),
+			zap.Any("best_makespan", population[0].result.Cost),
+			zap.Float64("best_fitness", population[0].fitness),
+		)
 
 		newPopulation := make([]*individual, 0, s.PopulationSize)
 
@@ -124,10 +143,16 @@ func (s *Strategy) Plan(
 	})
 
 	best := population[0]
-	fmt.Printf("[%s] Final Best: %v\n", s.Name(), best.result.Cost)
+
+	s.logger.Info("Optimization completed",
+		zap.String("strategy_type", s.Name()),
+		zap.Any("final_makespan", best.result.Cost),
+		zap.Duration("duration_since_start", time.Since(startTime)),
+	)
 
 	return best.result.Solution, best.result.MachineSlots
 }
+
 func (s *Strategy) selectParent(population []*individual) *individual {
 	tournamentSize := 3
 	var best *individual

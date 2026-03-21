@@ -7,20 +7,28 @@ import (
 
 	"github.com/velosypedno/resource-allocation/internal/base"
 	"github.com/velosypedno/resource-allocation/internal/simulator"
+	"go.uber.org/zap"
 )
 
 type Strategy struct {
 	TabuSize       int
 	MaxIterations  int
 	NeighborsCount int
+	logger         *zap.Logger
 }
 
 func New(tabuSize, maxIter, neighbors int) *Strategy {
+	l, _ := zap.NewProduction()
 	return &Strategy{
 		TabuSize:       tabuSize,
 		MaxIterations:  maxIter,
 		NeighborsCount: neighbors,
+		logger:         l,
 	}
+}
+
+func (s *Strategy) SetLogger(l *zap.Logger) {
+	s.logger = l
 }
 
 func (s *Strategy) Name() string {
@@ -54,6 +62,13 @@ func (s *Strategy) Plan(
 ) (*base.Solution, base.MachineTimeSlots) {
 	sim := simulator.NewFactorySimulator(jobs, machines, startTime)
 	n := sim.TotalOperations()
+
+	s.logger.Info("Starting Tabu Search optimization",
+		zap.String("strategy_type", s.Name()),
+		zap.Int("max_iterations", s.MaxIterations),
+		zap.Int("neighbors_count", s.NeighborsCount),
+		zap.Int("tabu_size", s.TabuSize),
+	)
 
 	currentWeights := make([]float64, n)
 	for i := range currentWeights {
@@ -93,14 +108,28 @@ func (s *Strategy) Plan(
 		if bestNeighborRes != nil {
 			currentWeights = bestNeighborWeights
 			currentRes = bestNeighborRes
-
 			tabuList[chosenMove] = iter + s.TabuSize
 
 			if currentRes.Cost < bestRes.Cost {
 				bestRes = currentRes
+				s.logger.Debug("New global best found",
+					zap.Int("iteration", iter),
+					zap.Any("cost", bestRes.Cost),
+				)
 			}
 		}
+
+		s.logger.Info("Iteration completed",
+			zap.Int("iter", iter),
+			zap.Any("current_cost", currentRes.Cost),
+			zap.Any("best_cost", bestRes.Cost),
+		)
 	}
+
+	s.logger.Info("Tabu Search finished",
+		zap.Any("final_best_cost", bestRes.Cost),
+		zap.Duration("elapsed", time.Since(startTime)),
+	)
 
 	return bestRes.Solution, bestRes.MachineSlots
 }

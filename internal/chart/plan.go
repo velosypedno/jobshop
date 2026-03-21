@@ -233,7 +233,7 @@ func formatStrategyDescription(meta scheduler.SchedulingInfo) string {
 	makespan := meta.MakeSpan.String()
 	utilization := fmt.Sprintf("%.1f%%", meta.UtilizationLevel*100)
 
-	line1 := fmt.Sprintf("STRATEGY: %s", strings.ToUpper(meta.StrategyName))
+	line1 := fmt.Sprintf("STRATEGY: %s", strings.ToUpper(meta.StrategyType))
 
 	line2 := fmt.Sprintf("TIME: %s  │  MAKESPAN: %s  │  UTILIZATION: %s",
 		execTime, makespan, utilization)

@@ -12,12 +12,14 @@ import (
 	"github.com/velosypedno/resource-allocation/internal/strategy/naive"
 	"github.com/velosypedno/resource-allocation/internal/strategy/rnd"
 	"github.com/velosypedno/resource-allocation/internal/strategy/tabu"
+	"go.uber.org/zap"
 )
 
 type Strategy interface {
 	Plan([]*base.Job, []*base.Machine, time.Time) (*base.Solution, base.MachineTimeSlots)
 	Name() string
 	Description() string
+	SetLogger(l *zap.Logger)
 }
 
 func ParseFactoryConfig(filePath string) ([]MachineConfig, []base.JobTemplate, []Strategy, error) {
