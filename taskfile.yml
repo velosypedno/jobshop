@@ -25,7 +25,7 @@ tasks:
   build:
     desc: Build the binary
     cmds:
-      - go build -o {{.BINARY_NAME}} cmd/main.go
+      - go build -o {{.BINARY_NAME}} cmd/scheduler/main.go
 
   run:
     desc: Run the application with flags
@@ -34,12 +34,12 @@ tasks:
       Example: task run -- -n my_test_plan
       Example: task run -- -c custom_config.json -o custom_orders.json
     cmds:
-      - go run cmd/main.go --config {{.CONFIG | default .DEFAULT_CONFIG}} --orders {{.ORDER | default .DEFAULT_ORDER}} {{.CLI_ARGS}}
+      - go run cmd/scheduler/main.go --config {{.CONFIG | default .DEFAULT_CONFIG}} --orders {{.ORDER | default .DEFAULT_ORDER}} {{.CLI_ARGS}}
 
   help:
     desc: Show CLI help
     cmds:
-      - go run cmd/main.go --help
+      - go run cmd/scheduler/main.go --help
   tidy:
     desc: Tidy go modules
     cmds:
