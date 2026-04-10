@@ -19,7 +19,7 @@ type App struct {
 	Scheduler *scheduler.Scheduler
 }
 
-func New(machinesConfig []parser.MachineConfig, templates []base.JobTemplate, strategies []parser.Strategy) *App {
+func New(machinesConfig []parser.MachineConfig, templates []base.JobTemplate, strategies []base.Strategy) *App {
 	s := &scheduler.Scheduler{}
 	s.Configure(machinesConfig, templates)
 	s.SetPlanners(strategies...)

@@ -12,18 +12,9 @@ import (
 	"github.com/velosypedno/resource-allocation/internal/strategy/naive"
 	"github.com/velosypedno/resource-allocation/internal/strategy/rnd"
 	"github.com/velosypedno/resource-allocation/internal/strategy/tabu"
-	"go.uber.org/zap"
 )
 
-type Strategy interface {
-	Plan([]*base.Job, []*base.Machine, time.Time) (*base.Solution, base.MachineTimeSlots)
-	Type() string
-	Name() string
-	Description() string
-	SetLogger(l *zap.Logger)
-}
-
-func ParseFactoryConfig(filePath string) ([]MachineConfig, []base.JobTemplate, []Strategy, error) {
+func ParseFactoryConfig(filePath string) ([]MachineConfig, []base.JobTemplate, []base.Strategy, error) {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to read config file: %w", err)
@@ -51,7 +42,7 @@ func ParseFactoryConfig(filePath string) ([]MachineConfig, []base.JobTemplate, [
 		})
 	}
 
-	strategies := make([]Strategy, 0, len(config.Strategies))
+	strategies := make([]base.Strategy, 0, len(config.Strategies))
 	for _, sDTO := range config.Strategies {
 		s, err := createStrategy(sDTO)
 		if err != nil {
@@ -95,7 +86,7 @@ func convertOperations(dtos []OperationTemplateDTO, machineTypes map[string]base
 	return res, nil
 }
 
-func createStrategy(dto StrategyDTO) (Strategy, error) {
+func createStrategy(dto StrategyDTO) (base.Strategy, error) {
 	switch dto.Type {
 	case "ga":
 		var p GAConfigDTO

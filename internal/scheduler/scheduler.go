@@ -19,7 +19,7 @@ type Scheduler struct {
 	Machines  []*base.Machine
 	Templates map[string]base.JobTemplate
 
-	Planners []parser.Strategy
+	Planners []base.Strategy
 
 	machineTypeRegistry map[string]base.MachineType
 	jobCounter          int
@@ -55,7 +55,7 @@ func (f *Scheduler) Configure(machineConfigs []parser.MachineConfig, templates [
 	}
 }
 
-func (f *Scheduler) SetPlanners(planners ...parser.Strategy) {
+func (f *Scheduler) SetPlanners(planners ...base.Strategy) {
 	f.Planners = planners
 }
 
