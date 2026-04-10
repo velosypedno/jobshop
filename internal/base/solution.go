@@ -33,18 +33,6 @@ func (os *OperationSolution) Flatten() []*OperationSolution {
 	return results
 }
 
-func (os *OperationSolution) GetSelfDuration() time.Duration {
-	return os.Operation.Duration
-}
-
-func (os *OperationSolution) GetTreeWorkDuration() time.Duration {
-	total := os.GetSelfDuration()
-	for _, child := range os.ChildSolutions {
-		total += child.GetTreeWorkDuration()
-	}
-	return total
-}
-
 func (os *OperationSolution) GetTreeFlowPeriod() Period {
 	minStart := os.Period.Start
 	maxEnd := os.Period.End
@@ -62,31 +50,9 @@ func (os *OperationSolution) GetTreeFlowPeriod() Period {
 	return Period{Start: minStart, End: maxEnd}
 }
 
-func (os *OperationSolution) GetLastChildCompletionTime() (time.Time, error) {
-	if len(os.ChildSolutions) == 0 {
-		return time.Time{}, ErrNoChildrenFound
-	}
-
-	maxTime := os.ChildSolutions[0].Period.End
-	for _, child := range os.ChildSolutions {
-		if child.Period.End.After(maxTime) {
-			maxTime = child.Period.End
-		}
-	}
-	return maxTime, nil
-}
-
 type JobSolution struct {
 	Job                *Job
 	OperationSolutions []*OperationSolution
-}
-
-func (js *JobSolution) GetTotalWorkDuration() time.Duration {
-	var total time.Duration
-	for _, opSol := range js.OperationSolutions {
-		total += opSol.GetTreeWorkDuration()
-	}
-	return total
 }
 
 func (js *JobSolution) GetAllOperations() []*OperationSolution {
@@ -121,14 +87,6 @@ type Solution struct {
 	Jobs []*JobSolution
 }
 
-func (s *Solution) GetWorkDuration() time.Duration {
-	var duration time.Duration
-	for _, jobSolution := range s.Jobs {
-		duration += jobSolution.GetTotalWorkDuration()
-	}
-	return duration
-}
-
 func (s *Solution) GetWorkFlowPeriod() Period {
 	if len(s.Jobs) == 0 {
 		return Period{}
@@ -161,7 +119,6 @@ func (s Solution) String() string {
 
 	sb.WriteString("================================================================================\n")
 	sb.WriteString("FACTORY PLAN SUMMARY\n")
-	sb.WriteString(fmt.Sprintf("Total Duration: %v\n", s.GetWorkDuration()))
 	sb.WriteString(fmt.Sprintf("Flow Period:    %s -> %s\n",
 		totalPeriod.Start.Format("15:04:05"),
 		totalPeriod.End.Format("15:04:05")))
