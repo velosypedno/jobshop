@@ -1,16 +1,23 @@
-package formatter
+package reporter
 
 import (
 	"fmt"
+	"io"
 	"strings"
 	"text/tabwriter"
 
 	"github.com/velosypedno/resource-allocation/internal/scheduler"
 )
 
-type TableFormatter struct{}
+type Reporter struct {
+	writer io.Writer
+}
 
-func (f *TableFormatter) Format(results []scheduler.PlanResult) (string, error) {
+func New(w io.Writer) *Reporter {
+	return &Reporter{writer: w}
+}
+
+func (f *Reporter) format(results []scheduler.PlanResult) (string, error) {
 	var buf strings.Builder
 	w := tabwriter.NewWriter(&buf, 0, 0, 3, ' ', tabwriter.TabIndent)
 
@@ -32,4 +39,13 @@ func (f *TableFormatter) Format(results []scheduler.PlanResult) (string, error) 
 
 	w.Flush()
 	return buf.String(), nil
+}
+
+func (r *Reporter) Generate(results []scheduler.PlanResult) error {
+	content, err := r.format(results)
+	if err != nil {
+		return err
+	}
+	_, err = fmt.Fprint(r.writer, content)
+	return err
 }

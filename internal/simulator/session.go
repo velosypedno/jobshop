@@ -7,11 +7,6 @@ import (
 	"github.com/velosypedno/resource-allocation/internal/base"
 )
 
-type fullID struct {
-	jobID base.JobID
-	opID  base.OperationID
-}
-
 type session struct {
 	OccupiedMap      base.MachineTimeSlots
 	MachineTypeIndex base.MachineTypeIndex

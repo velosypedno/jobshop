@@ -10,7 +10,6 @@ import (
 	"github.com/velosypedno/resource-allocation/internal/chart"
 	"github.com/velosypedno/resource-allocation/internal/parser"
 	"github.com/velosypedno/resource-allocation/internal/reporter"
-	"github.com/velosypedno/resource-allocation/internal/reporter/formatter"
 	"github.com/velosypedno/resource-allocation/internal/scheduler"
 	"go.uber.org/zap"
 )
@@ -28,6 +27,7 @@ func New(machinesConfig []parser.MachineConfig, templates []base.JobTemplate, st
 		Scheduler: s,
 	}
 }
+
 func (a *App) Run(startTime time.Time, orders []parser.OrderDTO, customName string) error {
 	outputDir := "results"
 	if err := os.MkdirAll(outputDir, 0755); err != nil {
@@ -60,7 +60,7 @@ func (a *App) Run(startTime time.Time, orders []parser.OrderDTO, customName stri
 		logger.Error("Planning failed", zap.Error(err))
 		return fmt.Errorf("during planning: %v", err)
 	}
-	rep := reporter.NewReporter(os.Stdout, &formatter.TableFormatter{})
+	rep := reporter.New(os.Stdout)
 
 	if err := rep.Generate(results); err != nil {
 		logger.Warn("Could not generate text report", zap.Error(err))
