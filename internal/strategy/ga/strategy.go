@@ -76,7 +76,7 @@ type individual struct {
 	result  *simulator.SimulationResult
 }
 
-func (s *Strategy) Plan(problem base.Problem) (*base.Solution, base.MachineTimeSlots) {
+func (s *Strategy) Plan(problem base.Problem) (*base.Solution, base.SolutionV2, base.MachineTimeSlots) {
 	sim := simulator.NewFactorySimulator(problem)
 	n := sim.TotalOperations()
 
@@ -152,7 +152,9 @@ func (s *Strategy) Plan(problem base.Problem) (*base.Solution, base.MachineTimeS
 		zap.Duration("duration_since_start", time.Since(problem.StartTime)),
 	)
 
-	return best.result.Solution, best.result.MachineSlots
+	solV2 := base.NewSolutionV2()
+
+	return best.result.Solution, solV2, best.result.MachineSlots
 }
 
 func (s *Strategy) selectParent(population []*individual) *individual {

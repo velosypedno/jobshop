@@ -17,3 +17,9 @@ type OperationSolutionV2 struct {
 type SolutionV2 struct {
 	OperationMap map[OperationID]OperationSolutionV2
 }
+
+func NewSolutionV2() SolutionV2 {
+	return SolutionV2{
+		OperationMap: make(map[OperationID]OperationSolutionV2),
+	}
+}
