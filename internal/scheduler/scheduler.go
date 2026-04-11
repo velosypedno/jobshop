@@ -70,12 +70,18 @@ func (f *Scheduler) Plan(orders []parser.OrderDTO, startTime time.Time) ([]PlanR
 		return nil, err
 	}
 
+	problem := base.Problem{
+		Jobs:      jobs,
+		Machines:  f.Machines,
+		StartTime: startTime,
+	}
+
 	results := make([]PlanResult, 0, len(f.Planners))
 
 	for _, planner := range f.Planners {
 		startPlanning := time.Now()
 
-		solution, machineSlotsMap := planner.Plan(jobs, f.Machines, startTime)
+		solution, machineSlotsMap := planner.Plan(problem)
 
 		metaInfo := SchedulingMetaInfo{
 			StrategyName:        planner.Name(),

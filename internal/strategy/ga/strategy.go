@@ -76,18 +76,14 @@ type individual struct {
 	result  *simulator.SimulationResult
 }
 
-func (s *Strategy) Plan(
-	jobs []*base.Job,
-	machines []*base.Machine,
-	startTime time.Time,
-) (*base.Solution, base.MachineTimeSlots) {
-	sim := simulator.NewFactorySimulator(jobs, machines, startTime)
+func (s *Strategy) Plan(problem base.Problem) (*base.Solution, base.MachineTimeSlots) {
+	sim := simulator.NewFactorySimulator(problem)
 	n := sim.TotalOperations()
 
 	s.logger.Info("Starting resource allocation planning",
 		zap.String("strategy_type", s.Type()),
-		zap.Int("jobs_count", len(jobs)),
-		zap.Int("machines_count", len(machines)),
+		zap.Int("jobs_count", len(problem.Jobs)),
+		zap.Int("machines_count", len(problem.Machines)),
 		zap.Int("total_operations", n),
 	)
 
@@ -153,7 +149,7 @@ func (s *Strategy) Plan(
 	s.logger.Info("Optimization completed",
 		zap.String("strategy_type", s.Type()),
 		zap.Any("final_makespan", best.result.Cost),
-		zap.Duration("duration_since_start", time.Since(startTime)),
+		zap.Duration("duration_since_start", time.Since(problem.StartTime)),
 	)
 
 	return best.result.Solution, best.result.MachineSlots

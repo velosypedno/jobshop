@@ -49,15 +49,15 @@ func (o InternalOp) String() string {
 	)
 }
 
-func NewFactorySimulator(jobs []*base.Job, machines []*base.Machine, startTime time.Time) *FactorySimulator {
+func NewFactorySimulator(problem base.Problem) *FactorySimulator {
 	sim := &FactorySimulator{
 		Ops:          []*InternalOp{},
-		machines:     machines,
-		startTime:    startTime,
+		machines:     problem.Machines,
+		startTime:    problem.StartTime,
 		rootOpIDs:    make(map[base.JobID][]int),
-		originalJobs: jobs,
+		originalJobs: problem.Jobs,
 	}
-	sim.flattenJobs(jobs)
+	sim.flattenJobs(problem.Jobs)
 	return sim
 }
 

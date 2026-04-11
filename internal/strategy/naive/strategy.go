@@ -41,21 +41,17 @@ func (Strategy) Description() string {
 	return description
 }
 
-func (s *Strategy) Plan(
-	jobs []*base.Job,
-	machines []*base.Machine,
-	startTime time.Time,
-) (*base.Solution, base.MachineTimeSlots) {
+func (s *Strategy) Plan(problem base.Problem) (*base.Solution, base.MachineTimeSlots) {
 	s.logger.Info("Starting Greedy planning",
 		zap.String("strategy_type", s.Type()),
-		zap.Int("jobs_count", len(jobs)),
-		zap.Int("machines_count", len(machines)),
+		zap.Int("jobs_count", len(problem.Jobs)),
+		zap.Int("machines_count", len(problem.Machines)),
 	)
 
-	session := newSession(machines, startTime)
+	session := newSession(problem.Machines, problem.StartTime)
 	solution := Solution{}
 
-	for _, job := range jobs {
+	for _, job := range problem.Jobs {
 		jobSolution := planJob(job, session)
 		solution.Jobs = append(solution.Jobs, jobSolution)
 	}
@@ -63,7 +59,7 @@ func (s *Strategy) Plan(
 	baseSolution := solution.ToBaseSolution()
 
 	s.logger.Info("Greedy planning completed",
-		zap.Duration("elapsed", time.Since(startTime)),
+		zap.Duration("elapsed", time.Since(problem.StartTime)),
 	)
 
 	return baseSolution, session.OccupiedMap

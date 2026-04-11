@@ -11,11 +11,6 @@ import (
 	"go.uber.org/zap"
 )
 
-type Simulator interface {
-	Simulate(weights []float64) *simulator.SimulationResult
-	TotalOperations() int
-}
-
 type Strategy struct {
 	InitialTemp      float64
 	MinTemp          float64
@@ -72,12 +67,8 @@ func (s *Strategy) Description() string {
 	)
 }
 
-func (s *Strategy) Plan(
-	jobs []*base.Job,
-	machines []*base.Machine,
-	startTime time.Time,
-) (*base.Solution, base.MachineTimeSlots) {
-	sim := simulator.NewFactorySimulator(jobs, machines, startTime)
+func (s *Strategy) Plan(problem base.Problem) (*base.Solution, base.MachineTimeSlots) {
+	sim := simulator.NewFactorySimulator(problem)
 	n := sim.TotalOperations()
 
 	s.logger.Info("Starting Simulated Annealing",
@@ -123,7 +114,7 @@ func (s *Strategy) Plan(
 
 	s.logger.Info("Simulated Annealing finished",
 		zap.Any("final_cost", bestRes.Cost),
-		zap.Duration("elapsed", time.Since(startTime)),
+		zap.Duration("elapsed", time.Since(problem.StartTime)),
 	)
 
 	return bestRes.Solution, bestRes.MachineSlots

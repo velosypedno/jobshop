@@ -61,12 +61,8 @@ type move struct {
 	i, j int
 }
 
-func (s *Strategy) Plan(
-	jobs []*base.Job,
-	machines []*base.Machine,
-	startTime time.Time,
-) (*base.Solution, base.MachineTimeSlots) {
-	sim := simulator.NewFactorySimulator(jobs, machines, startTime)
+func (s *Strategy) Plan(problem base.Problem) (*base.Solution, base.MachineTimeSlots) {
+	sim := simulator.NewFactorySimulator(problem)
 	n := sim.TotalOperations()
 
 	s.logger.Info("Starting Tabu Search optimization",
@@ -134,7 +130,7 @@ func (s *Strategy) Plan(
 
 	s.logger.Info("Tabu Search finished",
 		zap.Any("final_best_cost", bestRes.Cost),
-		zap.Duration("elapsed", time.Since(startTime)),
+		zap.Duration("elapsed", time.Since(problem.StartTime)),
 	)
 
 	return bestRes.Solution, bestRes.MachineSlots
