@@ -10,7 +10,6 @@ import (
 	"github.com/velosypedno/resource-allocation/internal/strategy/annealing"
 	"github.com/velosypedno/resource-allocation/internal/strategy/ga"
 	"github.com/velosypedno/resource-allocation/internal/strategy/naive"
-	"github.com/velosypedno/resource-allocation/internal/strategy/rnd"
 	"github.com/velosypedno/resource-allocation/internal/strategy/tabu"
 )
 
@@ -107,34 +106,11 @@ func createStrategy(dto StrategyDTO) (base.Strategy, error) {
 		if err := json.Unmarshal(dto.Params, &p); err != nil {
 			return nil, err
 		}
-		annealingConfig := annealing.Config{
-			InitialTemp:      p.InitialTemp,
-			MinTemp:          p.MinTemp,
-			Alpha:            p.Alpha,
-			Iterations:       p.Iterations,
-			SwapsPerMutation: p.Swaps,
-		}
-		return annealing.NewPriorityBased(annealingConfig, dto.Name), nil
 
-	case "annealing_sequence_based":
-		var p AnnealingConfigDTO
-		if err := json.Unmarshal(dto.Params, &p); err != nil {
-			return nil, err
-		}
-		annealingConfig := annealing.Config{
-			InitialTemp:      p.InitialTemp,
-			MinTemp:          p.MinTemp,
-			Alpha:            p.Alpha,
-			Iterations:       p.Iterations,
-			SwapsPerMutation: p.Swaps,
-		}
-		return annealing.NewSequenceBased(annealingConfig, dto.Name), nil
+		return annealing.New(p.InitialTemp, p.MinTemp, p.Alpha, p.Iterations, p.Swaps, dto.Name), nil
 
 	case "greedy", "naive":
 		return naive.New(dto.Name), nil
-
-	case "random":
-		return rnd.New(dto.Name), nil
 
 	default:
 		return nil, fmt.Errorf("unknown strategy type: %s", dto.Type)
