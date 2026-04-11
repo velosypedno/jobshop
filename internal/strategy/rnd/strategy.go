@@ -42,7 +42,7 @@ func (s *Strategy) Plan(
 	seq.Shuffle()
 
 	jobCounters := make([]int, len(jobs))
-	plannedOps := make(map[fullID]*OperationSolution)
+	plannedOps := make(map[base.OperationID]*OperationSolution)
 
 	for i := 0; i < seq.Len(); i++ {
 		jobIdx := seq.Get(i)
@@ -53,9 +53,7 @@ func (s *Strategy) Plan(
 		readyTime := sess.GetReadyTime(operation)
 		mID, period := sess.FindBestSlot(readyTime, operation.Duration, operation.MachineType)
 
-		currentID := fullID{jobID: operation.JobID, opID: operation.ID}
-
-		sess.results[currentID] = period
+		sess.results[operation.ID] = period
 
 		opSol := &OperationSolution{
 			Operation:      operation,
@@ -65,13 +63,12 @@ func (s *Strategy) Plan(
 		}
 
 		for _, child := range operation.ChildOperations {
-			childID := fullID{jobID: operation.JobID, opID: child.ID}
-			if childSol, ok := plannedOps[childID]; ok {
+			if childSol, ok := plannedOps[child.ID]; ok {
 				opSol.ChildSolutions = append(opSol.ChildSolutions, childSol)
 			}
 		}
 
-		plannedOps[currentID] = opSol
+		plannedOps[operation.ID] = opSol
 		sess.OccupiedMap[mID] = append(sess.OccupiedMap[mID], period)
 		jobCounters[jobIdx]++
 	}
@@ -81,7 +78,7 @@ func (s *Strategy) Plan(
 
 func (s *Strategy) assemble(
 	jobs []*base.Job,
-	plannedOps map[fullID]*OperationSolution,
+	plannedOps map[base.OperationID]*OperationSolution,
 ) *base.Solution {
 	localSolution := Solution{
 		Jobs: make([]*JobSolution, 0, len(jobs)),
@@ -94,8 +91,7 @@ func (s *Strategy) assemble(
 		}
 
 		for _, rootOp := range job.Operations {
-			key := fullID{jobID: job.ID, opID: rootOp.ID}
-			if sol, ok := plannedOps[key]; ok {
+			if sol, ok := plannedOps[rootOp.ID]; ok {
 				js.OperationSolutions = append(js.OperationSolutions, sol)
 			}
 		}

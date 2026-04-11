@@ -23,6 +23,7 @@ type Scheduler struct {
 
 	machineTypeRegistry map[string]base.MachineType
 	jobCounter          int
+	operationCounter    base.OperationID
 	machineCounter      int
 }
 
@@ -116,7 +117,7 @@ func (f *Scheduler) createJobsFromOrders(orders []parser.OrderDTO) ([]*base.Job,
 
 		for i := 0; i < order.Amount; i++ {
 			jobIDCounter++
-			newJob := base.CreateJob(base.JobID(jobIDCounter), template)
+			newJob := base.CreateJob(base.JobID(jobIDCounter), template, &f.operationCounter)
 			jobs = append(jobs, &newJob)
 		}
 	}

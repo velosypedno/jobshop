@@ -19,8 +19,8 @@ type OperationTemplate struct {
 }
 
 type Operation struct {
-	ID              OperationID
-	JobID           JobID
+	ID OperationID
+
 	Name            string
 	MachineType     MachineType
 	Duration        time.Duration
@@ -39,7 +39,7 @@ type Job struct {
 	FlattenedOperations []*Operation
 }
 
-func CreateJob(id JobID, template JobTemplate) Job {
+func CreateJob(id JobID, template JobTemplate, lastOperationID *OperationID) Job {
 	job := Job{
 		ID:                  id,
 		Name:                template.Name,
@@ -47,9 +47,8 @@ func CreateJob(id JobID, template JobTemplate) Job {
 		FlattenedOperations: []*Operation{},
 	}
 
-	counter := 1
 	for _, operation := range template.Operations {
-		job.Operations = append(job.Operations, instantiateOperation(id, operation, &counter))
+		job.Operations = append(job.Operations, instantiateOperation(id, operation, lastOperationID))
 	}
 
 	for _, rootOp := range job.Operations {
@@ -77,19 +76,17 @@ func (j *Job) GetOperation(index int) *Operation {
 	return j.FlattenedOperations[index]
 }
 
-func instantiateOperation(jobID JobID, t OperationTemplate, counter *int) *Operation {
-
+func instantiateOperation(jobID JobID, t OperationTemplate, lastOperationID *OperationID) *Operation {
 	instance := Operation{
-		ID:          OperationID(*counter),
-		JobID:       jobID,
+		ID:          OperationID(*lastOperationID),
 		Name:        t.Name,
 		MachineType: t.MachineType,
 		Duration:    t.ProcessingTime,
 	}
-	*counter++
+	*lastOperationID++
 
 	for _, child := range t.Children {
-		instance.ChildOperations = append(instance.ChildOperations, instantiateOperation(jobID, child, counter))
+		instance.ChildOperations = append(instance.ChildOperations, instantiateOperation(jobID, child, lastOperationID))
 	}
 
 	return &instance
