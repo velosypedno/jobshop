@@ -81,7 +81,7 @@ func (f *Scheduler) Plan(orders []parser.OrderDTO, startTime time.Time) ([]PlanR
 	for _, planner := range f.Planners {
 		startPlanning := time.Now()
 
-		solution, solutionV2, _ := planner.Plan(problem)
+		solution, solutionV2 := planner.Plan(problem)
 
 		metaInfo := SchedulingMetaInfo{
 			StrategyName:        planner.Name(),
