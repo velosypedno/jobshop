@@ -25,11 +25,10 @@ type FactorySimulator struct {
 type InternalOp struct {
 	ID          base.OperationID
 	BaseOp      *base.Operation
-	JobID       int
+	JobID       base.JobID
 	ParentID    base.OperationID
 	InDegree    int
 	ChildrenIDs []base.OperationID
-	MachineID   string
 }
 
 func (o InternalOp) String() string {
@@ -80,7 +79,7 @@ func (s *FactorySimulator) flattenJobs(jobs []*base.Job) {
 			internal := &InternalOp{
 				ID:          globalIDCounter,
 				BaseOp:      op,
-				JobID:       int(jobID),
+				JobID:       jobID,
 				ParentID:    -1,
 				InDegree:    len(op.ChildOperations),
 				ChildrenIDs: make([]base.OperationID, 0, len(op.ChildOperations)),
