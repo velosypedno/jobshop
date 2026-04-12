@@ -12,8 +12,8 @@ type session struct {
 	MachineTypeIndex base.MachineTypeIndex
 	StartTime        time.Time
 
-	results          map[int]base.Period
-	assignedMachines map[int]base.MachineID
+	results          map[base.OperationID]base.Period
+	assignedMachines map[base.OperationID]base.MachineID
 }
 
 func newSession(machines []*base.Machine, startTime time.Time) *session {
@@ -21,8 +21,8 @@ func newSession(machines []*base.Machine, startTime time.Time) *session {
 		OccupiedMap:      initTimeSlotsMap(machines),
 		MachineTypeIndex: initMachineTypeIndex(machines),
 		StartTime:        startTime,
-		results:          make(map[int]base.Period, 0),
-		assignedMachines: make(map[int]base.MachineID),
+		results:          make(map[base.OperationID]base.Period, 0),
+		assignedMachines: make(map[base.OperationID]base.MachineID),
 	}
 }
 

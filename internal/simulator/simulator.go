@@ -18,17 +18,17 @@ type FactorySimulator struct {
 	Ops          []*InternalOp
 	machines     []*base.Machine
 	startTime    time.Time
-	rootOpIDs    map[base.JobID][]int
+	rootOpIDs    map[base.JobID][]base.OperationID
 	originalJobs []*base.Job
 }
 
 type InternalOp struct {
-	ID          int
+	ID          base.OperationID
 	BaseOp      *base.Operation
 	JobID       int
-	ParentID    int
+	ParentID    base.OperationID
 	InDegree    int
-	ChildrenIDs []int
+	ChildrenIDs []base.OperationID
 	MachineID   string
 }
 
@@ -55,7 +55,7 @@ func NewFactorySimulator(problem base.Problem) *FactorySimulator {
 		Ops:          []*InternalOp{},
 		machines:     problem.Machines,
 		startTime:    problem.StartTime,
-		rootOpIDs:    make(map[base.JobID][]int),
+		rootOpIDs:    make(map[base.JobID][]base.OperationID),
 		originalJobs: problem.Jobs,
 	}
 	sim.flattenJobs(problem.Jobs)
@@ -68,7 +68,7 @@ func (s *FactorySimulator) TotalOperations() int {
 func (s *FactorySimulator) flattenJobs(jobs []*base.Job) {
 	registry := make(map[base.JobID]map[base.OperationID]*InternalOp)
 
-	globalIDCounter := 0
+	globalIDCounter := base.OperationID(0)
 
 	var registerRecursive func(jobID base.JobID, ops []*base.Operation)
 	registerRecursive = func(jobID base.JobID, ops []*base.Operation) {
@@ -83,7 +83,7 @@ func (s *FactorySimulator) flattenJobs(jobs []*base.Job) {
 				JobID:       int(jobID),
 				ParentID:    -1,
 				InDegree:    len(op.ChildOperations),
-				ChildrenIDs: make([]int, 0, len(op.ChildOperations)),
+				ChildrenIDs: make([]base.OperationID, 0, len(op.ChildOperations)),
 			}
 
 			s.Ops = append(s.Ops, internal)
@@ -134,11 +134,11 @@ func (s *FactorySimulator) Simulate(weights []float64) *SimulationResult {
 		currentInDegrees[i] = op.InDegree
 	}
 
-	readyList := make([]int, 0, total)
+	readyList := make([]base.OperationID, 0, total)
 
 	for i, deg := range currentInDegrees {
 		if deg == 0 {
-			readyList = append(readyList, i)
+			readyList = append(readyList, base.OperationID(i))
 		}
 	}
 
@@ -182,7 +182,7 @@ func (s *FactorySimulator) Simulate(weights []float64) *SimulationResult {
 	}
 }
 
-func pickBestOperation(readyList []int, weights []float64) int {
+func pickBestOperation(readyList []base.OperationID, weights []float64) int {
 	bestIdx := 0
 	for i := 1; i < len(readyList); i++ {
 		if weights[readyList[i]] < weights[readyList[bestIdx]] {
@@ -193,7 +193,7 @@ func pickBestOperation(readyList []int, weights []float64) int {
 }
 
 func (s *FactorySimulator) Assemble(sess *session) (*base.Solution, base.SolutionV2) {
-	opSols := make(map[int]*OperationSolution, len(s.Ops))
+	opSols := make(map[base.OperationID]*OperationSolution, len(s.Ops))
 
 	solutionV2 := base.NewSolutionV2()
 
