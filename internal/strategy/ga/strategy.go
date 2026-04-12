@@ -152,9 +152,7 @@ func (s *Strategy) Plan(problem base.Problem) (*base.Solution, base.SolutionV2, 
 		zap.Duration("duration_since_start", time.Since(problem.StartTime)),
 	)
 
-	solV2 := base.NewSolutionV2()
-
-	return best.result.Solution, solV2, best.result.MachineSlots
+	return best.result.Solution, best.result.SolutionV2, best.result.MachineSlots
 }
 
 func (s *Strategy) selectParent(population []*individual) *individual {

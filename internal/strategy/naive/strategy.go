@@ -64,6 +64,16 @@ func (s *Strategy) Plan(problem base.Problem) (*base.Solution, base.SolutionV2, 
 
 	solV2 := base.NewSolutionV2()
 
+	for _, jobSolution := range solution.Jobs {
+		for _, operationSolution := range jobSolution.toBaseJobSolution().GetAllOperations() {
+			solV2.OperationMap[operationSolution.Operation.ID] = base.OperationSolutionV2{
+				MachineID: operationSolution.MachineID,
+				Offset:    operationSolution.Period.Start.Sub(problem.StartTime),
+				Duration:  operationSolution.Operation.Duration,
+			}
+		}
+	}
+
 	return baseSolution, solV2, session.OccupiedMap
 }
 

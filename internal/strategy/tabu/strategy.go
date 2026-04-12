@@ -133,7 +133,5 @@ func (s *Strategy) Plan(problem base.Problem) (*base.Solution, base.SolutionV2, 
 		zap.Duration("elapsed", time.Since(problem.StartTime)),
 	)
 
-	solV2 := base.NewSolutionV2()
-
-	return bestRes.Solution, solV2, bestRes.MachineSlots
+	return bestRes.Solution, bestRes.SolutionV2, bestRes.MachineSlots
 }

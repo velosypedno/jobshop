@@ -81,7 +81,7 @@ func (f *Scheduler) Plan(orders []parser.OrderDTO, startTime time.Time) ([]PlanR
 	for _, planner := range f.Planners {
 		startPlanning := time.Now()
 
-		solution, _, machineSlotsMap := planner.Plan(problem)
+		solution, solutionV2, _ := planner.Plan(problem)
 
 		metaInfo := SchedulingMetaInfo{
 			StrategyName:        planner.Name(),
@@ -92,10 +92,9 @@ func (f *Scheduler) Plan(orders []parser.OrderDTO, startTime time.Time) ([]PlanR
 
 		workflowPeriod := solution.GetWorkFlowPeriod()
 		makeSpan := workflowPeriod.Duration()
-
 		utilization := 0.0
 		if makeSpan > 0 {
-			utilization = machineSlotsMap.GetUtilizationLevel(makeSpan)
+			utilization = solutionV2.GerUtilizationLevel(startTime)
 		}
 
 		results = append(results, PlanResult{
