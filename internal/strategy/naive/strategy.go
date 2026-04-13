@@ -1,7 +1,6 @@
 package naive
 
 import (
-	"errors"
 	"time"
 
 	"github.com/velosypedno/resource-allocation/internal/base"
@@ -49,28 +48,16 @@ func (s *Strategy) Plan(problem *base.Problem) base.SolutionV2 {
 	)
 
 	session := newSession(problem.Machines, problem.StartTime)
-	solution := Solution{}
+
+	solV2 := base.NewSolutionV2()
 
 	for _, job := range problem.Jobs {
-		jobSolution := planJob(job, session)
-		solution.Jobs = append(solution.Jobs, jobSolution)
+		planJob(job, session, &solV2)
 	}
 
 	s.logger.Info("Greedy planning completed",
 		zap.Duration("elapsed", time.Since(problem.StartTime)),
 	)
-
-	solV2 := base.NewSolutionV2()
-
-	for _, jobSolution := range solution.Jobs {
-		for _, operationSolution := range jobSolution.toBaseJobSolution().GetAllOperations() {
-			solV2.OperationMap[operationSolution.Operation.ID] = base.OperationSolutionV2{
-				MachineID: operationSolution.MachineID,
-				Offset:    operationSolution.Period.Start.Sub(problem.StartTime),
-				Duration:  operationSolution.Operation.Duration,
-			}
-		}
-	}
 
 	return solV2
 }
@@ -78,46 +65,34 @@ func (s *Strategy) Plan(problem *base.Problem) base.SolutionV2 {
 func planJob(
 	job *base.Job,
 	session *session,
-) *JobSolution {
-	jobSolution := &JobSolution{
-		Job:                job,
-		OperationSolutions: []*OperationSolution{},
-	}
+	solution *base.SolutionV2,
+) {
 	for _, operation := range job.Operations {
-		operationSolution := planOperation(operation, session)
-		jobSolution.OperationSolutions = append(jobSolution.OperationSolutions, operationSolution)
+		planOperation(operation, session, solution)
 	}
-	return jobSolution
 }
 
 func planOperation(
 	operation *base.Operation,
 	session *session,
-) *OperationSolution {
-	operationSolution := &OperationSolution{
-		Operation:      operation,
-		ChildSolutions: []*OperationSolution{},
-	}
+	solution *base.SolutionV2,
+) {
+	operationSolutionV2 := base.OperationSolutionV2{}
 
 	for _, child := range operation.ChildOperations {
-		operationSolution.ChildSolutions = append(
-			operationSolution.ChildSolutions,
-			planOperation(child, session))
+		planOperation(child, session, solution)
 	}
-	lastChildEndTime, err := operationSolution.GetLastChildCompletionTime()
-	if errors.Is(err, ErrNoChildrenFound) {
-		targetMachineID, targetPeriod := session.FindBestSlot(
-			session.StartTime,
-			operation.Duration,
-			operation.MachineType,
-		)
-		operationSolution.MachineID = targetMachineID
-		operationSolution.Period = targetPeriod
-		session.OccupiedMap[targetMachineID] = append(session.OccupiedMap[targetMachineID], targetPeriod)
-		return operationSolution
-	}
-	if err != nil {
-		panic(err)
+
+	lastChildEndTime := session.StartTime
+	for _, childOp := range operation.ChildOperations {
+		if childOp == nil {
+			continue
+		}
+		childSolution := solution.OperationMap[childOp.ID]
+		childCompletionTime := session.StartTime.Add(childSolution.Offset).Add(childOp.Duration)
+		if childCompletionTime.After(lastChildEndTime) {
+			lastChildEndTime = childCompletionTime
+		}
 	}
 
 	targetMachineID, targetPeriod := session.FindBestSlot(
@@ -125,9 +100,12 @@ func planOperation(
 		operation.Duration,
 		operation.MachineType,
 	)
-	operationSolution.MachineID = targetMachineID
-	operationSolution.Period = targetPeriod
+
+	operationSolutionV2.Duration = operation.Duration
+	operationSolutionV2.MachineID = targetMachineID
+	operationSolutionV2.Offset = targetPeriod.Start.Sub(session.StartTime)
+	solution.OperationMap[operation.ID] = operationSolutionV2
+
 	session.OccupiedMap[targetMachineID] = append(session.OccupiedMap[targetMachineID], targetPeriod)
 
-	return operationSolution
 }
