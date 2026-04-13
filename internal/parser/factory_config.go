@@ -6,11 +6,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/velosypedno/resource-allocation/internal/core"
-	"github.com/velosypedno/resource-allocation/internal/strategy/annealing"
-	"github.com/velosypedno/resource-allocation/internal/strategy/ga"
-	"github.com/velosypedno/resource-allocation/internal/strategy/naive"
-	"github.com/velosypedno/resource-allocation/internal/strategy/tabu"
+	"github.com/velosypedno/jobshop/internal/core"
+	"github.com/velosypedno/jobshop/internal/strategy/annealing"
+	"github.com/velosypedno/jobshop/internal/strategy/ga"
+	"github.com/velosypedno/jobshop/internal/strategy/naive"
+	"github.com/velosypedno/jobshop/internal/strategy/tabu"
 )
 
 func ParseFactoryConfig(filePath string) ([]MachineConfig, []core.JobTemplate, []core.Strategy, error) {

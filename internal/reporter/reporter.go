@@ -6,7 +6,7 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/velosypedno/resource-allocation/internal/scheduler"
+	"github.com/velosypedno/jobshop/internal/scheduler"
 )
 
 type Reporter struct {

@@ -5,8 +5,8 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/velosypedno/resource-allocation/internal/core"
-	"github.com/velosypedno/resource-allocation/internal/simulator"
+	"github.com/velosypedno/jobshop/internal/core"
+	"github.com/velosypedno/jobshop/internal/simulator"
 	"go.uber.org/zap"
 )
 

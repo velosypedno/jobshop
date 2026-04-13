@@ -8,8 +8,8 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/velosypedno/resource-allocation/internal/core"
-	"github.com/velosypedno/resource-allocation/internal/simulator"
+	"github.com/velosypedno/jobshop/internal/core"
+	"github.com/velosypedno/jobshop/internal/simulator"
 )
 
 type Strategy struct {

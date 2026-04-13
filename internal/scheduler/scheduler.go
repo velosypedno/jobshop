@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/velosypedno/resource-allocation/internal/core"
-	"github.com/velosypedno/resource-allocation/internal/parser"
+	"github.com/velosypedno/jobshop/internal/core"
+	"github.com/velosypedno/jobshop/internal/parser"
 	"go.uber.org/zap"
 )
 

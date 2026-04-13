@@ -4,7 +4,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/velosypedno/resource-allocation/internal/core"
+	"github.com/velosypedno/jobshop/internal/core"
 )
 
 type session struct {

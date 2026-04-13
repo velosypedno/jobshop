@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-	"github.com/velosypedno/resource-allocation/internal/app"
-	"github.com/velosypedno/resource-allocation/internal/parser"
+	"github.com/velosypedno/jobshop/internal/app"
+	"github.com/velosypedno/jobshop/internal/parser"
 )
 
 func main() {

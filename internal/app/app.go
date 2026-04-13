@@ -6,11 +6,11 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/velosypedno/resource-allocation/internal/chart"
-	"github.com/velosypedno/resource-allocation/internal/core"
-	"github.com/velosypedno/resource-allocation/internal/parser"
-	"github.com/velosypedno/resource-allocation/internal/reporter"
-	"github.com/velosypedno/resource-allocation/internal/scheduler"
+	"github.com/velosypedno/jobshop/internal/chart"
+	"github.com/velosypedno/jobshop/internal/core"
+	"github.com/velosypedno/jobshop/internal/parser"
+	"github.com/velosypedno/jobshop/internal/reporter"
+	"github.com/velosypedno/jobshop/internal/scheduler"
 	"go.uber.org/zap"
 )
 

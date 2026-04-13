@@ -1,4 +1,4 @@
-module github.com/velosypedno/resource-allocation
+module github.com/velosypedno/jobshop
 
 go 1.25.5
 

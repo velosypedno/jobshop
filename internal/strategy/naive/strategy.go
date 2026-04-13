@@ -3,7 +3,7 @@ package naive
 import (
 	"time"
 
-	"github.com/velosypedno/resource-allocation/internal/core"
+	"github.com/velosypedno/jobshop/internal/core"
 	"go.uber.org/zap"
 )
 
