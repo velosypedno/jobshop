@@ -61,7 +61,7 @@ type move struct {
 	i, j int
 }
 
-func (s *Strategy) Plan(problem *base.Problem) (*base.Solution, base.SolutionV2) {
+func (s *Strategy) Plan(problem *base.Problem) base.SolutionV2 {
 	sim := simulator.NewFactorySimulator(problem)
 	n := sim.TotalOperations()
 
@@ -133,5 +133,5 @@ func (s *Strategy) Plan(problem *base.Problem) (*base.Solution, base.SolutionV2)
 		zap.Duration("elapsed", time.Since(problem.StartTime)),
 	)
 
-	return bestRes.Solution, bestRes.SolutionV2
+	return bestRes.SolutionV2
 }

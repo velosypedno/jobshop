@@ -10,8 +10,7 @@ import (
 )
 
 type PlanResult struct {
-	Solution   *base.Solution
-	SolutionV2 base.SolutionV2
+	SolutionV2 *base.SolutionV2
 	Info       SchedulingInfo
 }
 
@@ -84,7 +83,7 @@ func (f *Scheduler) Plan(problem *base.Problem) ([]PlanResult, error) {
 
 	for _, planner := range f.Planners {
 		startPlanning := time.Now()
-		solution, solutionV2 := planner.Plan(problem)
+		solution := planner.Plan(problem)
 
 		metaInfo := SchedulingMetaInfo{
 			StrategyName:        planner.Name(),
@@ -93,16 +92,15 @@ func (f *Scheduler) Plan(problem *base.Problem) ([]PlanResult, error) {
 			SchedulingTime:      time.Since(startPlanning),
 		}
 
-		workflowPeriod := solution.GetWorkFlowPeriod()
+		workflowPeriod := solution.GetPeriod(problem.StartTime)
 		makeSpan := workflowPeriod.Duration()
 		utilization := 0.0
 		if makeSpan > 0 {
-			utilization = solutionV2.GerUtilizationLevel(problem.StartTime)
+			utilization = solution.GerUtilizationLevel(problem.StartTime)
 		}
 
 		results = append(results, PlanResult{
-			Solution:   solution,
-			SolutionV2: solutionV2,
+			SolutionV2: &solution,
 			Info: SchedulingInfo{
 				SchedulingMetaInfo: metaInfo,
 				MakeSpan:           makeSpan,

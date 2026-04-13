@@ -67,7 +67,7 @@ func (s *Strategy) Description() string {
 	)
 }
 
-func (s *Strategy) Plan(problem *base.Problem) (*base.Solution, base.SolutionV2) {
+func (s *Strategy) Plan(problem *base.Problem) base.SolutionV2 {
 	sim := simulator.NewFactorySimulator(problem)
 	n := sim.TotalOperations()
 
@@ -117,7 +117,7 @@ func (s *Strategy) Plan(problem *base.Problem) (*base.Solution, base.SolutionV2)
 		zap.Duration("elapsed", time.Since(problem.StartTime)),
 	)
 
-	return bestRes.Solution, bestRes.SolutionV2
+	return bestRes.SolutionV2
 }
 
 func (s *Strategy) mutate(weights []float64) []float64 {

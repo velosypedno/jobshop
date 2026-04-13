@@ -200,20 +200,22 @@ func createBaseCustomChart(machines []*base.Machine, period base.Period, descrip
 	return chart
 }
 
-func addSolutionSeries(chart *charts.Custom, solution *base.Solution, problem *base.Problem) {
-	mMap := generateMachineIndexMap(problem.Machines)
+func addSolutionSeries(chart *charts.Custom, solution *base.SolutionV2, problemCtx *base.ProblemContext) {
+	mMap := generateMachineIndexMap(problemCtx.Problem.Machines)
 
-	for _, job := range solution.Jobs {
+	for _, job := range problemCtx.Problem.Jobs {
 		var seriesData []opts.CustomData
-		fullJobName := fmt.Sprintf("%s [%d]", job.Job.Name, job.Job.ID)
+		fullJobName := fmt.Sprintf("%s [%d]", job.Name, job.ID)
 
-		for _, op := range job.GetAllOperations() {
+		for _, opID := range problemCtx.GetOperationsByJob(job.ID) {
+			opSolution := solution.OperationMap[opID]
+			op, _ := problemCtx.GetOperation(opID)
 			seriesData = append(seriesData, opts.CustomData{
 				Value: []interface{}{
-					mMap[op.MachineID],
-					op.Period.Start.UnixMilli(),
-					op.Period.End.UnixMilli(),
-					op.Operation.Name,
+					mMap[opSolution.MachineID],
+					problemCtx.Problem.StartTime.Add(opSolution.Offset).UnixMilli(),
+					problemCtx.Problem.StartTime.Add(opSolution.Offset).Add(opSolution.Duration).UnixMilli(),
+					op.Name,
 					fullJobName,
 				},
 			})
@@ -249,16 +251,16 @@ func formatStrategyDescription(meta scheduler.SchedulingInfo) string {
 }
 
 func GenerateFromSolution(
-	solution *base.Solution,
-	problem *base.Problem,
+	solution *base.SolutionV2,
+	problemCtx *base.ProblemContext,
 	schedulingInfo scheduler.SchedulingInfo,
 ) *charts.Custom {
-	sortMachines(problem.Machines)
-	period := solution.GetWorkFlowPeriod()
+	sortMachines(problemCtx.Problem.Machines)
+	period := solution.GetPeriod(problemCtx.Problem.StartTime)
 	description := formatStrategyDescription(schedulingInfo)
 
-	chart := createBaseCustomChart(problem.Machines, period, description)
-	addSolutionSeries(chart, solution, problem)
+	chart := createBaseCustomChart(problemCtx.Problem.Machines, period, description)
+	addSolutionSeries(chart, solution, problemCtx)
 	return chart
 }
 
@@ -266,6 +268,7 @@ func GenerateFromSolutions(
 	problem *base.Problem,
 	results []scheduler.PlanResult,
 ) *components.Page {
+	problemCtx := base.NewProblemContext(problem)
 
 	sortMachines(problem.Machines)
 
@@ -278,7 +281,7 @@ func GenerateFromSolutions(
 		description := formatStrategyDescription(res.Info)
 
 		chart := createBaseCustomChart(problem.Machines, period, description)
-		addSolutionSeries(chart, res.Solution, problem)
+		addSolutionSeries(chart, res.SolutionV2, problemCtx)
 
 		page.AddCharts(chart)
 	}

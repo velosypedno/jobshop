@@ -9,7 +9,6 @@ import (
 
 type SimulationResult struct {
 	Cost         float64
-	Solution     *base.Solution
 	SolutionV2   base.SolutionV2
 	MachineSlots base.MachineTimeSlots
 }
@@ -125,7 +124,7 @@ func (s *FactorySimulator) flattenJobs(jobs []*base.Job) {
 func (s *FactorySimulator) Simulate(weights []float64) *SimulationResult {
 	total := len(s.Ops)
 	if total == 0 {
-		return &SimulationResult{Solution: &base.Solution{}, SolutionV2: base.NewSolutionV2()}
+		return &SimulationResult{SolutionV2: base.NewSolutionV2()}
 	}
 
 	currentInDegrees := make([]int, total)
@@ -172,11 +171,10 @@ func (s *FactorySimulator) Simulate(weights []float64) *SimulationResult {
 		}
 
 	}
-	solution, solutionV2 := s.Assemble(sess)
+	solutionV2 := s.Assemble(sess)
 	return &SimulationResult{
 		Cost:         maxFinishTime.Sub(s.startTime).Seconds(),
 		MachineSlots: sess.OccupiedMap,
-		Solution:     solution,
 		SolutionV2:   solutionV2,
 	}
 }
@@ -191,7 +189,7 @@ func pickBestOperation(readyList []base.OperationID, weights []float64) int {
 	return bestIdx
 }
 
-func (s *FactorySimulator) Assemble(sess *session) (*base.Solution, base.SolutionV2) {
+func (s *FactorySimulator) Assemble(sess *session) base.SolutionV2 {
 	opSols := make(map[base.OperationID]*OperationSolution, len(s.Ops))
 
 	solutionV2 := base.NewSolutionV2()
@@ -245,5 +243,5 @@ func (s *FactorySimulator) Assemble(sess *session) (*base.Solution, base.Solutio
 		localSolution.Jobs = append(localSolution.Jobs, js)
 	}
 
-	return localSolution.ToBaseSolution(), solutionV2
+	return solutionV2
 }

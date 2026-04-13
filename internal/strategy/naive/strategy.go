@@ -41,7 +41,7 @@ func (Strategy) Description() string {
 	return description
 }
 
-func (s *Strategy) Plan(problem *base.Problem) (*base.Solution, base.SolutionV2) {
+func (s *Strategy) Plan(problem *base.Problem) base.SolutionV2 {
 	s.logger.Info("Starting Greedy planning",
 		zap.String("strategy_type", s.Type()),
 		zap.Int("jobs_count", len(problem.Jobs)),
@@ -55,8 +55,6 @@ func (s *Strategy) Plan(problem *base.Problem) (*base.Solution, base.SolutionV2)
 		jobSolution := planJob(job, session)
 		solution.Jobs = append(solution.Jobs, jobSolution)
 	}
-
-	baseSolution := solution.ToBaseSolution()
 
 	s.logger.Info("Greedy planning completed",
 		zap.Duration("elapsed", time.Since(problem.StartTime)),
@@ -74,7 +72,7 @@ func (s *Strategy) Plan(problem *base.Problem) (*base.Solution, base.SolutionV2)
 		}
 	}
 
-	return baseSolution, solV2
+	return solV2
 }
 
 func planJob(
