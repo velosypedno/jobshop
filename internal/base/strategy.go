@@ -5,7 +5,7 @@ import (
 )
 
 type Strategy interface {
-	Plan(Problem) (*Solution, SolutionV2)
+	Plan(*Problem) (*Solution, SolutionV2)
 	Type() string
 	Name() string
 	Description() string

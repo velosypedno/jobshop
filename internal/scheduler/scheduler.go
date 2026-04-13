@@ -10,8 +10,9 @@ import (
 )
 
 type PlanResult struct {
-	Solution *base.Solution
-	Info     SchedulingInfo
+	Solution   *base.Solution
+	SolutionV2 base.SolutionV2
+	Info       SchedulingInfo
 }
 
 type Scheduler struct {
@@ -60,10 +61,10 @@ func (f *Scheduler) SetPlanners(planners ...base.Strategy) {
 	f.Planners = planners
 }
 
-func (f *Scheduler) GetProblem(orders []parser.OrderDTO, startTime time.Time) base.Problem {
+func (f *Scheduler) GetProblem(orders []parser.OrderDTO, startTime time.Time) *base.Problem {
 	jobs, err := f.createJobsFromOrders(orders)
 	if err != nil {
-		return base.Problem{}
+		return &base.Problem{}
 	}
 
 	problem := base.Problem{
@@ -71,10 +72,10 @@ func (f *Scheduler) GetProblem(orders []parser.OrderDTO, startTime time.Time) ba
 		Machines:  f.Machines,
 		StartTime: startTime,
 	}
-	return problem
+	return &problem
 }
 
-func (f *Scheduler) Plan(problem base.Problem) ([]PlanResult, error) {
+func (f *Scheduler) Plan(problem *base.Problem) ([]PlanResult, error) {
 	if len(f.Planners) == 0 {
 		return nil, fmt.Errorf("no planner strategies set")
 	}
@@ -83,7 +84,6 @@ func (f *Scheduler) Plan(problem base.Problem) ([]PlanResult, error) {
 
 	for _, planner := range f.Planners {
 		startPlanning := time.Now()
-
 		solution, solutionV2 := planner.Plan(problem)
 
 		metaInfo := SchedulingMetaInfo{
@@ -101,7 +101,8 @@ func (f *Scheduler) Plan(problem base.Problem) ([]PlanResult, error) {
 		}
 
 		results = append(results, PlanResult{
-			Solution: solution,
+			Solution:   solution,
+			SolutionV2: solutionV2,
 			Info: SchedulingInfo{
 				SchedulingMetaInfo: metaInfo,
 				MakeSpan:           makeSpan,

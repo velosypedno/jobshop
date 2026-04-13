@@ -200,8 +200,8 @@ func createBaseCustomChart(machines []*base.Machine, period base.Period, descrip
 	return chart
 }
 
-func addSolutionSeries(chart *charts.Custom, solution *base.Solution, machines []*base.Machine) {
-	mMap := generateMachineIndexMap(machines)
+func addSolutionSeries(chart *charts.Custom, solution *base.Solution, problem *base.Problem) {
+	mMap := generateMachineIndexMap(problem.Machines)
 
 	for _, job := range solution.Jobs {
 		var seriesData []opts.CustomData
@@ -250,20 +250,20 @@ func formatStrategyDescription(meta scheduler.SchedulingInfo) string {
 
 func GenerateFromSolution(
 	solution *base.Solution,
-	machines []*base.Machine,
+	problem *base.Problem,
 	schedulingInfo scheduler.SchedulingInfo,
 ) *charts.Custom {
-	sortMachines(machines)
+	sortMachines(problem.Machines)
 	period := solution.GetWorkFlowPeriod()
 	description := formatStrategyDescription(schedulingInfo)
 
-	chart := createBaseCustomChart(machines, period, description)
-	addSolutionSeries(chart, solution, machines)
+	chart := createBaseCustomChart(problem.Machines, period, description)
+	addSolutionSeries(chart, solution, problem)
 	return chart
 }
 
 func GenerateFromSolutions(
-	problem base.Problem,
+	problem *base.Problem,
 	results []scheduler.PlanResult,
 ) *components.Page {
 
@@ -274,11 +274,11 @@ func GenerateFromSolutions(
 	page.PageTitle = "Multi-Strategy Comparison"
 
 	for _, res := range results {
-		period := res.Solution.GetWorkFlowPeriod()
+		period := res.SolutionV2.GetPeriod(problem.StartTime)
 		description := formatStrategyDescription(res.Info)
 
 		chart := createBaseCustomChart(problem.Machines, period, description)
-		addSolutionSeries(chart, res.Solution, problem.Machines)
+		addSolutionSeries(chart, res.Solution, problem)
 
 		page.AddCharts(chart)
 	}

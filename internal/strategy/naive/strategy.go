@@ -41,7 +41,7 @@ func (Strategy) Description() string {
 	return description
 }
 
-func (s *Strategy) Plan(problem base.Problem) (*base.Solution, base.SolutionV2) {
+func (s *Strategy) Plan(problem *base.Problem) (*base.Solution, base.SolutionV2) {
 	s.logger.Info("Starting Greedy planning",
 		zap.String("strategy_type", s.Type()),
 		zap.Int("jobs_count", len(problem.Jobs)),

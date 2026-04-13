@@ -49,7 +49,7 @@ func (o InternalOp) String() string {
 	)
 }
 
-func NewFactorySimulator(problem base.Problem) *FactorySimulator {
+func NewFactorySimulator(problem *base.Problem) *FactorySimulator {
 	sim := &FactorySimulator{
 		Ops:          []*InternalOp{},
 		machines:     problem.Machines,
