@@ -55,7 +55,8 @@ func (a *App) Run(startTime time.Time, orders []parser.OrderDTO, customName stri
 		zap.Int("orders_count", len(orders)),
 	)
 
-	results, err := a.Scheduler.Plan(orders, startTime)
+	problem := a.Scheduler.GetProblem(orders, startTime)
+	results, err := a.Scheduler.Plan(problem)
 	if err != nil {
 		logger.Error("Planning failed", zap.Error(err))
 		return fmt.Errorf("during planning: %v", err)
@@ -66,7 +67,7 @@ func (a *App) Run(startTime time.Time, orders []parser.OrderDTO, customName stri
 		logger.Warn("Could not generate text report", zap.Error(err))
 	}
 
-	solutionsChart := chart.GenerateFromSolutions(results, a.Scheduler.Machines)
+	solutionsChart := chart.GenerateFromSolutions(problem, results)
 
 	chartPath := filepath.Join(outputDir, baseName+".html")
 	outputFile, err := os.Create(chartPath)

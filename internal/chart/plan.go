@@ -263,11 +263,11 @@ func GenerateFromSolution(
 }
 
 func GenerateFromSolutions(
+	problem base.Problem,
 	results []scheduler.PlanResult,
-	machines []*base.Machine,
 ) *components.Page {
 
-	sortMachines(machines)
+	sortMachines(problem.Machines)
 
 	page := components.NewPage()
 	page.SetLayout(components.PageNoneLayout)
@@ -277,8 +277,8 @@ func GenerateFromSolutions(
 		period := res.Solution.GetWorkFlowPeriod()
 		description := formatStrategyDescription(res.Info)
 
-		chart := createBaseCustomChart(machines, period, description)
-		addSolutionSeries(chart, res.Solution, machines)
+		chart := createBaseCustomChart(problem.Machines, period, description)
+		addSolutionSeries(chart, res.Solution, problem.Machines)
 
 		page.AddCharts(chart)
 	}

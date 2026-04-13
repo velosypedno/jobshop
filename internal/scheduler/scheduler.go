@@ -60,20 +60,23 @@ func (f *Scheduler) SetPlanners(planners ...base.Strategy) {
 	f.Planners = planners
 }
 
-func (f *Scheduler) Plan(orders []parser.OrderDTO, startTime time.Time) ([]PlanResult, error) {
-	if len(f.Planners) == 0 {
-		return nil, fmt.Errorf("no planner strategies set")
-	}
-
+func (f *Scheduler) GetProblem(orders []parser.OrderDTO, startTime time.Time) base.Problem {
 	jobs, err := f.createJobsFromOrders(orders)
 	if err != nil {
-		return nil, err
+		return base.Problem{}
 	}
 
 	problem := base.Problem{
 		Jobs:      jobs,
 		Machines:  f.Machines,
 		StartTime: startTime,
+	}
+	return problem
+}
+
+func (f *Scheduler) Plan(problem base.Problem) ([]PlanResult, error) {
+	if len(f.Planners) == 0 {
+		return nil, fmt.Errorf("no planner strategies set")
 	}
 
 	results := make([]PlanResult, 0, len(f.Planners))
@@ -94,7 +97,7 @@ func (f *Scheduler) Plan(orders []parser.OrderDTO, startTime time.Time) ([]PlanR
 		makeSpan := workflowPeriod.Duration()
 		utilization := 0.0
 		if makeSpan > 0 {
-			utilization = solutionV2.GerUtilizationLevel(startTime)
+			utilization = solutionV2.GerUtilizationLevel(problem.StartTime)
 		}
 
 		results = append(results, PlanResult{
