@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/velosypedno/resource-allocation/internal/base"
+	"github.com/velosypedno/resource-allocation/internal/core"
 	"github.com/velosypedno/resource-allocation/internal/scheduler"
 
 	"github.com/go-echarts/go-echarts/v2/charts"
@@ -78,7 +78,7 @@ const renderTooltipJS = `function(p){
 			timeStart + ' - ' + timeEnd;
 }`
 
-func sortMachines(machines []*base.Machine) {
+func sortMachines(machines []*core.Machine) {
 	sort.Slice(machines, func(i, j int) bool {
 		if machines[i].Type != machines[j].Type {
 			return machines[i].Type < machines[j].Type
@@ -87,15 +87,15 @@ func sortMachines(machines []*base.Machine) {
 	})
 }
 
-func generateMachineIndexMap(machines []*base.Machine) map[base.MachineID]int {
-	mMap := make(map[base.MachineID]int)
+func generateMachineIndexMap(machines []*core.Machine) map[core.MachineID]int {
+	mMap := make(map[core.MachineID]int)
 	for i, m := range machines {
 		mMap[m.ID] = i
 	}
 	return mMap
 }
 
-func generateYAxisCategories(machines []*base.Machine) []string {
+func generateYAxisCategories(machines []*core.Machine) []string {
 	categories := make([]string, 0, len(machines))
 	for _, m := range machines {
 		categories = append(categories, fmt.Sprintf("%s [ID: %d]", m.Name, m.ID))
@@ -103,7 +103,7 @@ func generateYAxisCategories(machines []*base.Machine) []string {
 	return categories
 }
 
-func createBaseCustomChart(machines []*base.Machine, period base.Period, description string) *charts.Custom {
+func createBaseCustomChart(machines []*core.Machine, period core.Period, description string) *charts.Custom {
 	chart := charts.NewCustom()
 
 	lineCount := strings.Count(description, "\n") + 1
@@ -200,7 +200,7 @@ func createBaseCustomChart(machines []*base.Machine, period base.Period, descrip
 	return chart
 }
 
-func addSolutionSeries(chart *charts.Custom, solution *base.Solution, problemCtx *base.ProblemContext) {
+func addSolutionSeries(chart *charts.Custom, solution *core.Solution, problemCtx *core.ProblemContext) {
 	mMap := generateMachineIndexMap(problemCtx.Problem.Machines)
 
 	for _, job := range problemCtx.Problem.Jobs {
@@ -251,8 +251,8 @@ func formatStrategyDescription(meta scheduler.SchedulingInfo) string {
 }
 
 func GenerateFromSolution(
-	solution *base.Solution,
-	problemCtx *base.ProblemContext,
+	solution *core.Solution,
+	problemCtx *core.ProblemContext,
 	schedulingInfo scheduler.SchedulingInfo,
 ) *charts.Custom {
 	sortMachines(problemCtx.Problem.Machines)
@@ -265,10 +265,10 @@ func GenerateFromSolution(
 }
 
 func GenerateFromSolutions(
-	problem *base.Problem,
+	problem *core.Problem,
 	results []scheduler.PlanResult,
 ) *components.Page {
-	problemCtx := base.NewProblemContext(problem)
+	problemCtx := core.NewProblemContext(problem)
 
 	sortMachines(problem.Machines)
 

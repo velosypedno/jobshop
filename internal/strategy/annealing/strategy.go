@@ -6,7 +6,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/velosypedno/resource-allocation/internal/base"
+	"github.com/velosypedno/resource-allocation/internal/core"
 	"github.com/velosypedno/resource-allocation/internal/simulator"
 	"go.uber.org/zap"
 )
@@ -67,7 +67,7 @@ func (s *Strategy) Description() string {
 	)
 }
 
-func (s *Strategy) Plan(problem *base.Problem) base.Solution {
+func (s *Strategy) Plan(problem *core.Problem) core.Solution {
 	sim := simulator.NewFactorySimulator(problem)
 	n := sim.TotalOperations()
 

@@ -4,38 +4,38 @@ import (
 	"sort"
 	"time"
 
-	"github.com/velosypedno/resource-allocation/internal/base"
+	"github.com/velosypedno/resource-allocation/internal/core"
 )
 
 type session struct {
-	OccupiedMap      base.MachineTimeSlots
-	MachineTypeIndex base.MachineTypeIndex
+	OccupiedMap      core.MachineTimeSlots
+	MachineTypeIndex core.MachineTypeIndex
 	StartTime        time.Time
 
-	results          map[base.OperationID]base.Period
-	assignedMachines map[base.OperationID]base.MachineID
+	results          map[core.OperationID]core.Period
+	assignedMachines map[core.OperationID]core.MachineID
 }
 
-func newSession(machines []*base.Machine, startTime time.Time) *session {
+func newSession(machines []*core.Machine, startTime time.Time) *session {
 	return &session{
 		OccupiedMap:      initTimeSlotsMap(machines),
 		MachineTypeIndex: initMachineTypeIndex(machines),
 		StartTime:        startTime,
-		results:          make(map[base.OperationID]base.Period, 0),
-		assignedMachines: make(map[base.OperationID]base.MachineID),
+		results:          make(map[core.OperationID]core.Period, 0),
+		assignedMachines: make(map[core.OperationID]core.MachineID),
 	}
 }
 
-func initTimeSlotsMap(machines []*base.Machine) base.MachineTimeSlots {
-	timeSlotsMap := make(map[base.MachineID][]base.Period)
+func initTimeSlotsMap(machines []*core.Machine) core.MachineTimeSlots {
+	timeSlotsMap := make(map[core.MachineID][]core.Period)
 	for _, machine := range machines {
-		timeSlotsMap[machine.ID] = []base.Period{}
+		timeSlotsMap[machine.ID] = []core.Period{}
 	}
 	return timeSlotsMap
 }
 
-func initMachineTypeIndex(machines []*base.Machine) base.MachineTypeIndex {
-	machineTypeIndex := make(map[base.MachineType][]base.MachineID)
+func initMachineTypeIndex(machines []*core.Machine) core.MachineTypeIndex {
+	machineTypeIndex := make(map[core.MachineType][]core.MachineID)
 	for _, machine := range machines {
 		machineTypeIndex[machine.Type] = append(machineTypeIndex[machine.Type], machine.ID)
 	}
@@ -45,12 +45,12 @@ func initMachineTypeIndex(machines []*base.Machine) base.MachineTypeIndex {
 func (s *session) FindBestSlot(
 	startTime time.Time,
 	duration time.Duration,
-	machineType base.MachineType,
-) (base.MachineID, base.Period) {
+	machineType core.MachineType,
+) (core.MachineID, core.Period) {
 	targetMachineIDs := s.MachineTypeIndex[machineType]
 
-	var bestMachineID base.MachineID
-	var bestPeriod base.Period
+	var bestMachineID core.MachineID
+	var bestPeriod core.Period
 	firstFound := false
 
 	for _, mID := range targetMachineIDs {
@@ -66,7 +66,7 @@ func (s *session) FindBestSlot(
 	return bestMachineID, bestPeriod
 }
 
-func (s *session) findEarliestGap(startTime time.Time, duration time.Duration, occupied []base.Period) base.Period {
+func (s *session) findEarliestGap(startTime time.Time, duration time.Duration, occupied []core.Period) core.Period {
 	sort.Slice(occupied, func(i, j int) bool {
 		return occupied[i].Start.Before(occupied[j].Start)
 	})
@@ -79,7 +79,7 @@ func (s *session) findEarliestGap(startTime time.Time, duration time.Duration, o
 		}
 
 		if slot.Start.Sub(candidateStart) >= duration {
-			return base.Period{
+			return core.Period{
 				Start: candidateStart,
 				End:   candidateStart.Add(duration),
 			}
@@ -90,7 +90,7 @@ func (s *session) findEarliestGap(startTime time.Time, duration time.Duration, o
 		}
 	}
 
-	return base.Period{
+	return core.Period{
 		Start: candidateStart,
 		End:   candidateStart.Add(duration),
 	}

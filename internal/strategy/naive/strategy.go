@@ -3,7 +3,7 @@ package naive
 import (
 	"time"
 
-	"github.com/velosypedno/resource-allocation/internal/base"
+	"github.com/velosypedno/resource-allocation/internal/core"
 	"go.uber.org/zap"
 )
 
@@ -40,7 +40,7 @@ func (Strategy) Description() string {
 	return description
 }
 
-func (s *Strategy) Plan(problem *base.Problem) base.Solution {
+func (s *Strategy) Plan(problem *core.Problem) core.Solution {
 	s.logger.Info("Starting Greedy planning",
 		zap.String("strategy_type", s.Type()),
 		zap.Int("jobs_count", len(problem.Jobs)),
@@ -49,7 +49,7 @@ func (s *Strategy) Plan(problem *base.Problem) base.Solution {
 
 	session := newSession(problem.Machines, problem.StartTime)
 
-	solV2 := base.NewSolution()
+	solV2 := core.NewSolution()
 
 	for _, job := range problem.Jobs {
 		planJob(job, session, &solV2)
@@ -63,9 +63,9 @@ func (s *Strategy) Plan(problem *base.Problem) base.Solution {
 }
 
 func planJob(
-	job *base.Job,
+	job *core.Job,
 	session *session,
-	solution *base.Solution,
+	solution *core.Solution,
 ) {
 	for _, operation := range job.Operations {
 		planOperation(operation, session, solution)
@@ -73,11 +73,11 @@ func planJob(
 }
 
 func planOperation(
-	operation *base.Operation,
+	operation *core.Operation,
 	session *session,
-	solution *base.Solution,
+	solution *core.Solution,
 ) {
-	operationSolutionV2 := base.OpSolution{}
+	operationSolutionV2 := core.OpSolution{}
 
 	for _, child := range operation.ChildOperations {
 		planOperation(child, session, solution)

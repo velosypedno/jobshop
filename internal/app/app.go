@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/velosypedno/resource-allocation/internal/base"
 	"github.com/velosypedno/resource-allocation/internal/chart"
+	"github.com/velosypedno/resource-allocation/internal/core"
 	"github.com/velosypedno/resource-allocation/internal/parser"
 	"github.com/velosypedno/resource-allocation/internal/reporter"
 	"github.com/velosypedno/resource-allocation/internal/scheduler"
@@ -18,7 +18,7 @@ type App struct {
 	Scheduler *scheduler.Scheduler
 }
 
-func New(machinesConfig []parser.MachineConfig, templates []base.JobTemplate, strategies []base.Strategy) *App {
+func New(machinesConfig []parser.MachineConfig, templates []core.JobTemplate, strategies []core.Strategy) *App {
 	s := &scheduler.Scheduler{}
 	s.Configure(machinesConfig, templates)
 	s.SetPlanners(strategies...)

@@ -4,26 +4,26 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/velosypedno/resource-allocation/internal/base"
+	"github.com/velosypedno/resource-allocation/internal/core"
 	"github.com/velosypedno/resource-allocation/internal/parser"
 	"go.uber.org/zap"
 )
 
 type PlanResult struct {
-	SolutionV2 *base.Solution
+	SolutionV2 *core.Solution
 	Info       SchedulingInfo
 }
 
 type Scheduler struct {
-	Jobs      []*base.Job
-	Machines  []*base.Machine
-	Templates map[string]base.JobTemplate
+	Jobs      []*core.Job
+	Machines  []*core.Machine
+	Templates map[string]core.JobTemplate
 
-	Planners []base.Strategy
+	Planners []core.Strategy
 
-	machineTypeRegistry map[string]base.MachineType
+	machineTypeRegistry map[string]core.MachineType
 	jobCounter          int
-	operationCounter    base.OperationID
+	operationCounter    core.OperationID
 	machineCounter      int
 }
 
@@ -35,38 +35,38 @@ func (s *Scheduler) SetLogger(l *zap.Logger) {
 
 }
 
-func (f *Scheduler) Configure(machineConfigs []parser.MachineConfig, templates []base.JobTemplate) {
-	f.Templates = make(map[string]base.JobTemplate)
-	f.machineTypeRegistry = make(map[string]base.MachineType)
+func (f *Scheduler) Configure(machineConfigs []parser.MachineConfig, templates []core.JobTemplate) {
+	f.Templates = make(map[string]core.JobTemplate)
+	f.machineTypeRegistry = make(map[string]core.MachineType)
 
 	for _, t := range templates {
 		f.Templates[t.Name] = t
 	}
 
 	for _, mConf := range machineConfigs {
-		mType := base.MachineType(mConf.TypeID)
+		mType := core.MachineType(mConf.TypeID)
 		f.machineTypeRegistry[mConf.TypeName] = mType
 
 		for i := 0; i < mConf.Count; i++ {
 			f.machineCounter++
-			m := base.NewMachine(base.MachineID(f.machineCounter), mType, mConf.TypeName)
+			m := core.NewMachine(core.MachineID(f.machineCounter), mType, mConf.TypeName)
 			m.Name = mConf.TypeName
 			f.Machines = append(f.Machines, &m)
 		}
 	}
 }
 
-func (f *Scheduler) SetPlanners(planners ...base.Strategy) {
+func (f *Scheduler) SetPlanners(planners ...core.Strategy) {
 	f.Planners = planners
 }
 
-func (f *Scheduler) GetProblem(orders []parser.OrderDTO, startTime time.Time) *base.Problem {
+func (f *Scheduler) GetProblem(orders []parser.OrderDTO, startTime time.Time) *core.Problem {
 	jobs, err := f.createJobsFromOrders(orders)
 	if err != nil {
-		return &base.Problem{}
+		return &core.Problem{}
 	}
 
-	problem := base.Problem{
+	problem := core.Problem{
 		Jobs:      jobs,
 		Machines:  f.Machines,
 		StartTime: startTime,
@@ -74,7 +74,7 @@ func (f *Scheduler) GetProblem(orders []parser.OrderDTO, startTime time.Time) *b
 	return &problem
 }
 
-func (f *Scheduler) Plan(problem *base.Problem) ([]PlanResult, error) {
+func (f *Scheduler) Plan(problem *core.Problem) ([]PlanResult, error) {
 	if len(f.Planners) == 0 {
 		return nil, fmt.Errorf("no planner strategies set")
 	}
@@ -112,8 +112,8 @@ func (f *Scheduler) Plan(problem *base.Problem) ([]PlanResult, error) {
 	return results, nil
 }
 
-func (f *Scheduler) createJobsFromOrders(orders []parser.OrderDTO) ([]*base.Job, error) {
-	var jobs []*base.Job
+func (f *Scheduler) createJobsFromOrders(orders []parser.OrderDTO) ([]*core.Job, error) {
+	var jobs []*core.Job
 	jobIDCounter := 0
 
 	for _, order := range orders {
@@ -124,7 +124,7 @@ func (f *Scheduler) createJobsFromOrders(orders []parser.OrderDTO) ([]*base.Job,
 
 		for i := 0; i < order.Amount; i++ {
 			jobIDCounter++
-			newJob := base.CreateJob(base.JobID(jobIDCounter), template, &f.operationCounter)
+			newJob := core.CreateJob(core.JobID(jobIDCounter), template, &f.operationCounter)
 			jobs = append(jobs, &newJob)
 		}
 	}

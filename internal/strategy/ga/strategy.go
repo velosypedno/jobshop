@@ -8,7 +8,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/velosypedno/resource-allocation/internal/base"
+	"github.com/velosypedno/resource-allocation/internal/core"
 	"github.com/velosypedno/resource-allocation/internal/simulator"
 )
 
@@ -76,7 +76,7 @@ type individual struct {
 	result  *simulator.SimulationResult
 }
 
-func (s *Strategy) Plan(problem *base.Problem) base.Solution {
+func (s *Strategy) Plan(problem *core.Problem) core.Solution {
 	sim := simulator.NewFactorySimulator(problem)
 	n := sim.TotalOperations()
 

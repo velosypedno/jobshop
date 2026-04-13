@@ -6,14 +6,14 @@ import (
 	"os"
 	"time"
 
-	"github.com/velosypedno/resource-allocation/internal/base"
+	"github.com/velosypedno/resource-allocation/internal/core"
 	"github.com/velosypedno/resource-allocation/internal/strategy/annealing"
 	"github.com/velosypedno/resource-allocation/internal/strategy/ga"
 	"github.com/velosypedno/resource-allocation/internal/strategy/naive"
 	"github.com/velosypedno/resource-allocation/internal/strategy/tabu"
 )
 
-func ParseFactoryConfig(filePath string) ([]MachineConfig, []base.JobTemplate, []base.Strategy, error) {
+func ParseFactoryConfig(filePath string) ([]MachineConfig, []core.JobTemplate, []core.Strategy, error) {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to read config file: %w", err)
@@ -24,24 +24,24 @@ func ParseFactoryConfig(filePath string) ([]MachineConfig, []base.JobTemplate, [
 		return nil, nil, nil, fmt.Errorf("failed to parse json: %w", err)
 	}
 
-	machineTypeMap := make(map[string]base.MachineType)
+	machineTypeMap := make(map[string]core.MachineType)
 	for _, m := range config.Machines {
-		machineTypeMap[m.TypeName] = base.MachineType(m.TypeID)
+		machineTypeMap[m.TypeName] = core.MachineType(m.TypeID)
 	}
 
-	templates := make([]base.JobTemplate, 0, len(config.JobTemplates))
+	templates := make([]core.JobTemplate, 0, len(config.JobTemplates))
 	for _, j := range config.JobTemplates {
 		operations, err := convertOperations(j.Operations, machineTypeMap)
 		if err != nil {
 			return nil, nil, nil, err
 		}
-		templates = append(templates, base.JobTemplate{
+		templates = append(templates, core.JobTemplate{
 			Name:       j.Name,
 			Operations: operations,
 		})
 	}
 
-	strategies := make([]base.Strategy, 0, len(config.Strategies))
+	strategies := make([]core.Strategy, 0, len(config.Strategies))
 	for _, sDTO := range config.Strategies {
 		s, err := createStrategy(sDTO)
 		if err != nil {
@@ -53,12 +53,12 @@ func ParseFactoryConfig(filePath string) ([]MachineConfig, []base.JobTemplate, [
 	return config.Machines, templates, strategies, nil
 }
 
-func convertOperations(dtos []OperationTemplateDTO, machineTypes map[string]base.MachineType) ([]base.OperationTemplate, error) {
+func convertOperations(dtos []OperationTemplateDTO, machineTypes map[string]core.MachineType) ([]core.OperationTemplate, error) {
 	if dtos == nil {
 		return nil, nil
 	}
 
-	res := make([]base.OperationTemplate, len(dtos))
+	res := make([]core.OperationTemplate, len(dtos))
 	for i, d := range dtos {
 		duration, err := time.ParseDuration(d.ProcessingTime)
 		if err != nil {
@@ -75,7 +75,7 @@ func convertOperations(dtos []OperationTemplateDTO, machineTypes map[string]base
 			return nil, fmt.Errorf("in child of '%s' -> %w", d.Name, err)
 		}
 
-		res[i] = base.OperationTemplate{
+		res[i] = core.OperationTemplate{
 			Name:           d.Name,
 			MachineType:    mType,
 			ProcessingTime: duration,
@@ -85,7 +85,7 @@ func convertOperations(dtos []OperationTemplateDTO, machineTypes map[string]base
 	return res, nil
 }
 
-func createStrategy(dto StrategyDTO) (base.Strategy, error) {
+func createStrategy(dto StrategyDTO) (core.Strategy, error) {
 	switch dto.Type {
 	case "ga":
 		var p GAConfigDTO
