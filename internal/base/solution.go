@@ -1,13 +1,6 @@
 package base
 
-import (
-	"errors"
-	"fmt"
-	"strings"
-	"time"
-)
-
-var ErrNoChildrenFound = errors.New("no children found")
+import "time"
 
 type Period struct {
 	Start time.Time
@@ -18,150 +11,60 @@ func (p Period) Duration() time.Duration {
 	return p.End.Sub(p.Start)
 }
 
-type OperationSolution struct {
-	Operation      *Operation
-	MachineID      MachineID
-	Period         Period
-	ChildSolutions []*OperationSolution
-}
-
-func (os *OperationSolution) Flatten() []*OperationSolution {
-	results := []*OperationSolution{os}
-	for _, child := range os.ChildSolutions {
-		results = append(results, child.Flatten()...)
-	}
-	return results
-}
-
-func (os *OperationSolution) GetTreeFlowPeriod() Period {
-	minStart := os.Period.Start
-	maxEnd := os.Period.End
-
-	for _, child := range os.ChildSolutions {
-		childPeriod := child.GetTreeFlowPeriod()
-		if childPeriod.Start.Before(minStart) {
-			minStart = childPeriod.Start
-		}
-		if childPeriod.End.After(maxEnd) {
-			maxEnd = childPeriod.End
-		}
-	}
-
-	return Period{Start: minStart, End: maxEnd}
-}
-
-type JobSolution struct {
-	Job                *Job
-	OperationSolutions []*OperationSolution
-}
-
-func (js *JobSolution) GetAllOperations() []*OperationSolution {
-	var allOps []*OperationSolution
-	for _, rootOp := range js.OperationSolutions {
-		allOps = append(allOps, rootOp.Flatten()...)
-	}
-	return allOps
-}
-
-func (js *JobSolution) GetJobFlowPeriod() Period {
-	if len(js.OperationSolutions) == 0 {
-		return Period{}
-	}
-
-	start := js.OperationSolutions[0].Period.Start
-	end := js.OperationSolutions[0].Period.End
-
-	for _, opSol := range js.OperationSolutions {
-		p := opSol.GetTreeFlowPeriod()
-		if p.Start.Before(start) {
-			start = p.Start
-		}
-		if p.End.After(end) {
-			end = p.End
-		}
-	}
-	return Period{Start: start, End: end}
+type OpSolution struct {
+	MachineID MachineID
+	Offset    time.Duration
+	Duration  time.Duration
 }
 
 type Solution struct {
-	Jobs []*JobSolution
+	OperationMap map[OperationID]OpSolution
 }
 
-func (s *Solution) GetWorkFlowPeriod() Period {
-	if len(s.Jobs) == 0 {
-		return Period{}
+func NewSolution() Solution {
+	return Solution{
+		OperationMap: make(map[OperationID]OpSolution),
 	}
+}
 
-	firstJobPeriod := s.Jobs[0].GetJobFlowPeriod()
-	start := firstJobPeriod.Start
-	end := firstJobPeriod.End
+func (s *Solution) GetPeriod(startTime time.Time) Period {
+	var maxEndTime time.Time
 
-	for _, jobSolution := range s.Jobs {
-		jobPeriod := jobSolution.GetJobFlowPeriod()
-
-		if jobPeriod.Start.Before(start) {
-			start = jobPeriod.Start
-		}
-		if jobPeriod.End.After(end) {
-			end = jobPeriod.End
+	for _, opSol := range s.OperationMap {
+		endTime := startTime.Add(opSol.Offset + opSol.Duration)
+		if endTime.After(maxEndTime) {
+			maxEndTime = endTime
 		}
 	}
 
 	return Period{
-		Start: start,
-		End:   end,
+		Start: startTime,
+		End:   maxEndTime,
 	}
 }
 
-func (s Solution) String() string {
-	var sb strings.Builder
-	totalPeriod := s.GetWorkFlowPeriod()
+func (s *Solution) GetAllOperationsDuration() time.Duration {
+	duration := time.Duration(0)
+	for _, opSol := range s.OperationMap {
+		duration += opSol.Duration
+	}
+	return duration
+}
 
-	sb.WriteString("================================================================================\n")
-	sb.WriteString("FACTORY PLAN SUMMARY\n")
-	sb.WriteString(fmt.Sprintf("Flow Period:    %s -> %s\n",
-		totalPeriod.Start.Format("15:04:05"),
-		totalPeriod.End.Format("15:04:05")))
-	sb.WriteString("================================================================================\n\n")
+func (s *Solution) GerUtilizationLevel(startTime time.Time) float64 {
+	period := s.GetPeriod(startTime)
 
-	for _, js := range s.Jobs {
-		jobPeriod := js.GetJobFlowPeriod()
-		sb.WriteString(fmt.Sprintf("JOB: %s [ID: %v]\n", js.Job.Name, js.Job.ID))
-		sb.WriteString(fmt.Sprintf("Period: %s - %s\n",
-			jobPeriod.Start.Format("15:04:05"),
-			jobPeriod.End.Format("15:04:05")))
+	machinesCount := 0
 
-		for _, opSol := range js.OperationSolutions {
-			sb.WriteString(opSol.formatSolutionTree(1))
+	machinesSet := make(map[MachineID]struct{})
+	for _, opSol := range s.OperationMap {
+		_, ok := machinesSet[opSol.MachineID]
+		if !ok {
+			machinesCount++
+			machinesSet[opSol.MachineID] = struct{}{}
 		}
-		sb.WriteString("--------------------------------------------------------------------------------\n")
 	}
+	duration := s.GetAllOperationsDuration()
 
-	return sb.String()
-}
-
-func (os *OperationSolution) formatSolutionTree(level int) string {
-	var sb strings.Builder
-
-	var indent string
-	if level > 1 {
-		indent = strings.Repeat("  │ ", level-1) + "  ├─ "
-	} else {
-		indent = " ├─ "
-	}
-
-	sb.WriteString(fmt.Sprintf("%s[%-5v] %-5s (%-10v) | %s -> %s\n",
-		indent,
-		os.Operation.ID,
-		os.Operation.Name,
-		os.Operation.MachineType,
-		os.Period.Start.Format("15:04:05"),
-		os.Period.End.Format("15:04:05"),
-	))
-
-	for _, child := range os.ChildSolutions {
-		sb.WriteString(child.formatSolutionTree(level + 1))
-	}
-
-	return sb.String()
+	return float64(duration) / (float64(machinesCount) * float64(period.Duration()))
 }

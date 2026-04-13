@@ -61,7 +61,7 @@ type move struct {
 	i, j int
 }
 
-func (s *Strategy) Plan(problem *base.Problem) base.SolutionV2 {
+func (s *Strategy) Plan(problem *base.Problem) base.Solution {
 	sim := simulator.NewFactorySimulator(problem)
 	n := sim.TotalOperations()
 

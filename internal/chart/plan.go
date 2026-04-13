@@ -200,7 +200,7 @@ func createBaseCustomChart(machines []*base.Machine, period base.Period, descrip
 	return chart
 }
 
-func addSolutionSeries(chart *charts.Custom, solution *base.SolutionV2, problemCtx *base.ProblemContext) {
+func addSolutionSeries(chart *charts.Custom, solution *base.Solution, problemCtx *base.ProblemContext) {
 	mMap := generateMachineIndexMap(problemCtx.Problem.Machines)
 
 	for _, job := range problemCtx.Problem.Jobs {
@@ -251,7 +251,7 @@ func formatStrategyDescription(meta scheduler.SchedulingInfo) string {
 }
 
 func GenerateFromSolution(
-	solution *base.SolutionV2,
+	solution *base.Solution,
 	problemCtx *base.ProblemContext,
 	schedulingInfo scheduler.SchedulingInfo,
 ) *charts.Custom {

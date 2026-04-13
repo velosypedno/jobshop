@@ -40,7 +40,7 @@ func (Strategy) Description() string {
 	return description
 }
 
-func (s *Strategy) Plan(problem *base.Problem) base.SolutionV2 {
+func (s *Strategy) Plan(problem *base.Problem) base.Solution {
 	s.logger.Info("Starting Greedy planning",
 		zap.String("strategy_type", s.Type()),
 		zap.Int("jobs_count", len(problem.Jobs)),
@@ -49,7 +49,7 @@ func (s *Strategy) Plan(problem *base.Problem) base.SolutionV2 {
 
 	session := newSession(problem.Machines, problem.StartTime)
 
-	solV2 := base.NewSolutionV2()
+	solV2 := base.NewSolution()
 
 	for _, job := range problem.Jobs {
 		planJob(job, session, &solV2)
@@ -65,7 +65,7 @@ func (s *Strategy) Plan(problem *base.Problem) base.SolutionV2 {
 func planJob(
 	job *base.Job,
 	session *session,
-	solution *base.SolutionV2,
+	solution *base.Solution,
 ) {
 	for _, operation := range job.Operations {
 		planOperation(operation, session, solution)
@@ -75,9 +75,9 @@ func planJob(
 func planOperation(
 	operation *base.Operation,
 	session *session,
-	solution *base.SolutionV2,
+	solution *base.Solution,
 ) {
-	operationSolutionV2 := base.OperationSolutionV2{}
+	operationSolutionV2 := base.OpSolution{}
 
 	for _, child := range operation.ChildOperations {
 		planOperation(child, session, solution)

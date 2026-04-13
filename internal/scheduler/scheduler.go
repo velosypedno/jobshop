@@ -10,7 +10,7 @@ import (
 )
 
 type PlanResult struct {
-	SolutionV2 *base.SolutionV2
+	SolutionV2 *base.Solution
 	Info       SchedulingInfo
 }
 
