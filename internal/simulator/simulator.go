@@ -63,6 +63,7 @@ func NewFactorySimulator(problem *base.Problem) *FactorySimulator {
 func (s *FactorySimulator) TotalOperations() int {
 	return len(s.Ops)
 }
+
 func (s *FactorySimulator) flattenJobs(jobs []*base.Job) {
 	registry := make(map[base.JobID]map[base.OperationID]*InternalOp)
 
@@ -190,8 +191,6 @@ func pickBestOperation(readyList []base.OperationID, weights []float64) int {
 }
 
 func (s *FactorySimulator) Assemble(sess *session) base.SolutionV2 {
-	opSols := make(map[base.OperationID]*OperationSolution, len(s.Ops))
-
 	solutionV2 := base.NewSolutionV2()
 
 	for _, op := range s.Ops {
@@ -202,45 +201,11 @@ func (s *FactorySimulator) Assemble(sess *session) base.SolutionV2 {
 			continue
 		}
 
-		opSols[op.ID] = &OperationSolution{
-			Operation:      op.BaseOp,
-			MachineID:      mID,
-			Period:         period,
-			ChildSolutions: []*OperationSolution{},
-		}
 		solutionV2.OperationMap[op.BaseOp.ID] = base.OperationSolutionV2{
 			MachineID: mID,
 			Offset:    period.Start.Sub(sess.StartTime),
 			Duration:  period.Duration(),
 		}
-	}
-
-	for _, op := range s.Ops {
-		if op.ParentID != -1 {
-			parentSol := opSols[op.ParentID]
-			childSol := opSols[op.ID]
-			if parentSol != nil && childSol != nil {
-				parentSol.ChildSolutions = append(parentSol.ChildSolutions, childSol)
-			}
-		}
-	}
-
-	localSolution := &Solution{
-		Jobs: make([]*JobSolution, 0, len(s.originalJobs)),
-	}
-
-	for _, job := range s.originalJobs {
-		js := &JobSolution{
-			Job:                job,
-			OperationSolutions: []*OperationSolution{},
-		}
-
-		for _, rootID := range s.rootOpIDs[job.ID] {
-			if sol, ok := opSols[rootID]; ok {
-				js.OperationSolutions = append(js.OperationSolutions, sol)
-			}
-		}
-		localSolution.Jobs = append(localSolution.Jobs, js)
 	}
 
 	return solutionV2
