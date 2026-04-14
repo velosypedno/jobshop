@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/velosypedno/jobshop/internal/core"
-	"github.com/velosypedno/jobshop/internal/scheduler"
+	"github.com/velosypedno/jobshop/internal/engine"
 
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/components"
@@ -230,12 +230,12 @@ func addSolutionSeries(chart *charts.Custom, solution *core.Solution, problemCtx
 	}
 }
 
-func formatStrategyDescription(meta scheduler.SchedulingInfo) string {
-	execTime := meta.SchedulingTime.Round(time.Millisecond).String()
-	makespan := meta.MakeSpan.String()
-	utilization := fmt.Sprintf("%.1f%%", meta.UtilizationLevel*100)
+func formatStrategyDescription(report engine.Report) string {
+	execTime := report.StrategyMetrics.SchedulingTime.Round(time.Millisecond).String()
+	makespan := report.SolutionMetrics.MakeSpan.String()
+	utilization := fmt.Sprintf("%.1f%%", report.SolutionMetrics.UtilizationLevel*100)
 
-	line1 := fmt.Sprintf("STRATEGY: %s", strings.ToUpper(meta.StrategyType))
+	line1 := fmt.Sprintf("STRATEGY: %s", strings.ToUpper(report.StrategyMetrics.StrategyType))
 
 	line2 := fmt.Sprintf("TIME: %s  │  MAKESPAN: %s  │  UTILIZATION: %s",
 		execTime, makespan, utilization)
@@ -246,18 +246,18 @@ func formatStrategyDescription(meta scheduler.SchedulingInfo) string {
 			"%s",
 		line1,
 		line2,
-		meta.StrategyDescription,
+		report.StrategyMetrics.StrategyDescription,
 	)
 }
 
 func GenerateFromSolution(
 	solution *core.Solution,
 	problemCtx *core.ProblemContext,
-	schedulingInfo scheduler.SchedulingInfo,
+	report engine.Report,
 ) *charts.Custom {
 	sortMachines(problemCtx.Problem.Machines)
 	period := solution.GetPeriod(problemCtx.Problem.StartTime)
-	description := formatStrategyDescription(schedulingInfo)
+	description := formatStrategyDescription(report)
 
 	chart := createBaseCustomChart(problemCtx.Problem.Machines, period, description)
 	addSolutionSeries(chart, solution, problemCtx)
@@ -266,7 +266,7 @@ func GenerateFromSolution(
 
 func GenerateFromSolutions(
 	problem *core.Problem,
-	results []scheduler.PlanResult,
+	reports []engine.Report,
 ) *components.Page {
 	problemCtx := core.NewProblemContext(problem)
 
@@ -276,12 +276,12 @@ func GenerateFromSolutions(
 	page.SetLayout(components.PageNoneLayout)
 	page.PageTitle = "Multi-Strategy Comparison"
 
-	for _, res := range results {
-		period := res.SolutionV2.GetPeriod(problem.StartTime)
-		description := formatStrategyDescription(res.Info)
+	for _, r := range reports {
+		period := r.Solution.GetPeriod(problem.StartTime)
+		description := formatStrategyDescription(r)
 
 		chart := createBaseCustomChart(problem.Machines, period, description)
-		addSolutionSeries(chart, res.SolutionV2, problemCtx)
+		addSolutionSeries(chart, r.Solution, problemCtx)
 
 		page.AddCharts(chart)
 	}

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/velosypedno/jobshop/internal/scheduler"
+	"github.com/velosypedno/jobshop/internal/engine"
 )
 
 type Reporter struct {
@@ -17,7 +17,7 @@ func New(w io.Writer) *Reporter {
 	return &Reporter{writer: w}
 }
 
-func (f *Reporter) format(results []scheduler.PlanResult) (string, error) {
+func (f *Reporter) format(results []engine.Report) (string, error) {
 	var buf strings.Builder
 	w := tabwriter.NewWriter(&buf, 0, 0, 3, ' ', tabwriter.TabIndent)
 
@@ -26,11 +26,11 @@ func (f *Reporter) format(results []scheduler.PlanResult) (string, error) {
 
 	for _, res := range results {
 		_, err := fmt.Fprintf(w, "%s\t%s\t%v\t%.2f%%\t%v\n",
-			res.Info.StrategyName,
-			res.Info.StrategyType,
-			res.Info.MakeSpan,
-			res.Info.UtilizationLevel*100,
-			res.Info.SchedulingTime,
+			res.StrategyMetrics.StrategyName,
+			res.StrategyMetrics.StrategyType,
+			res.SolutionMetrics.MakeSpan,
+			res.SolutionMetrics.UtilizationLevel*100,
+			res.StrategyMetrics.SchedulingTime,
 		)
 		if err != nil {
 			return "", err
@@ -41,7 +41,7 @@ func (f *Reporter) format(results []scheduler.PlanResult) (string, error) {
 	return buf.String(), nil
 }
 
-func (r *Reporter) Generate(results []scheduler.PlanResult) error {
+func (r *Reporter) Generate(results []engine.Report) error {
 	content, err := r.format(results)
 	if err != nil {
 		return err
