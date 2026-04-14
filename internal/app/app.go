@@ -8,23 +8,22 @@ import (
 
 	"github.com/velosypedno/jobshop/internal/chart"
 	"github.com/velosypedno/jobshop/internal/core"
+	"github.com/velosypedno/jobshop/internal/engine"
+	"github.com/velosypedno/jobshop/internal/factory"
 	"github.com/velosypedno/jobshop/internal/parser"
 	"github.com/velosypedno/jobshop/internal/reporter"
-	"github.com/velosypedno/jobshop/internal/scheduler"
 	"go.uber.org/zap"
 )
 
 type App struct {
-	Scheduler *scheduler.Scheduler
+	Factory *factory.Factory
+	Engine  *engine.Engine
 }
 
 func New(machinesConfig []parser.MachineConfig, templates []core.JobTemplate, strategies []core.Strategy) *App {
-	s := &scheduler.Scheduler{}
-	s.Configure(machinesConfig, templates)
-	s.SetPlanners(strategies...)
-
 	return &App{
-		Scheduler: s,
+		Factory: factory.New(machinesConfig, templates),
+		Engine:  engine.New(strategies...),
 	}
 }
 
@@ -48,15 +47,15 @@ func (a *App) Run(startTime time.Time, orders []parser.OrderDTO, customName stri
 	}
 	defer logger.Sync()
 
-	a.Scheduler.SetLogger(logger)
+	a.Engine.SetLogger(logger)
 
 	logger.Info("Starting application run",
 		zap.Time("start_time", startTime),
 		zap.Int("orders_count", len(orders)),
 	)
 
-	problem := a.Scheduler.GetProblem(orders, startTime)
-	results, err := a.Scheduler.Plan(problem)
+	problem := a.Factory.GetProblem(orders, startTime)
+	results, err := a.Engine.Solve(problem)
 	if err != nil {
 		logger.Error("Planning failed", zap.Error(err))
 		return fmt.Errorf("during planning: %v", err)
