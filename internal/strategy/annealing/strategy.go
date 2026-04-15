@@ -117,7 +117,7 @@ func (s *Strategy) Plan(problem *core.Problem) core.Solution {
 		zap.Duration("elapsed", time.Since(problem.StartTime)),
 	)
 
-	return bestRes.SolutionV2
+	return bestRes.Solution
 }
 
 func (s *Strategy) mutate(weights []float64) []float64 {
