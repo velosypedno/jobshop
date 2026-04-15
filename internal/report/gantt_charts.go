@@ -1,7 +1,8 @@
-package chart
+package report
 
 import (
 	"fmt"
+	"io"
 	"sort"
 	"strings"
 	"time"
@@ -250,20 +251,6 @@ func formatStrategyDescription(report engine.Report) string {
 	)
 }
 
-func GenerateFromSolution(
-	solution *core.Solution,
-	problemCtx *core.ProblemContext,
-	report engine.Report,
-) *charts.Custom {
-	sortMachines(problemCtx.Problem.Machines)
-	period := solution.GetPeriod(problemCtx.Problem.StartTime)
-	description := formatStrategyDescription(report)
-
-	chart := createBaseCustomChart(problemCtx.Problem.Machines, period, description)
-	addSolutionSeries(chart, solution, problemCtx)
-	return chart
-}
-
 func GenerateFromSolutions(
 	problem *core.Problem,
 	reports []engine.Report,
@@ -287,4 +274,18 @@ func GenerateFromSolutions(
 	}
 
 	return page
+}
+
+type GanttChartsReporter struct {
+	writer io.Writer
+}
+
+func NewGanttCharts(w io.Writer) *GanttChartsReporter {
+	return &GanttChartsReporter{writer: w}
+}
+
+func (r *GanttChartsReporter) Report(problem *core.Problem, results []engine.Report) error {
+	page := GenerateFromSolutions(problem, results)
+	return page.Render(r.writer)
+
 }

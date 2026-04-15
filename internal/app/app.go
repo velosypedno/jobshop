@@ -6,12 +6,11 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/velosypedno/jobshop/internal/chart"
 	"github.com/velosypedno/jobshop/internal/core"
 	"github.com/velosypedno/jobshop/internal/engine"
 	"github.com/velosypedno/jobshop/internal/factory"
 	"github.com/velosypedno/jobshop/internal/parser"
-	"github.com/velosypedno/jobshop/internal/reporter"
+	"github.com/velosypedno/jobshop/internal/report"
 	"go.uber.org/zap"
 )
 
@@ -60,13 +59,11 @@ func (a *App) Run(startTime time.Time, orders []parser.OrderDTO, customName stri
 		logger.Error("Planning failed", zap.Error(err))
 		return fmt.Errorf("during planning: %v", err)
 	}
-	rep := reporter.New(os.Stdout)
+	stdoutTable := report.NewSimpleTable(os.Stdout)
 
-	if err := rep.Generate(results); err != nil {
+	if err := stdoutTable.Report(results); err != nil {
 		logger.Warn("Could not generate text report", zap.Error(err))
 	}
-
-	solutionsChart := chart.GenerateFromSolutions(problem, results)
 
 	chartPath := filepath.Join(outputDir, baseName+".html")
 	outputFile, err := os.Create(chartPath)
@@ -75,9 +72,9 @@ func (a *App) Run(startTime time.Time, orders []parser.OrderDTO, customName stri
 	}
 	defer outputFile.Close()
 
-	err = solutionsChart.Render(outputFile)
-	if err != nil {
-		return fmt.Errorf("error rendering chart: %v", err)
+	ganttCharts := report.NewGanttCharts(outputFile)
+	if err := ganttCharts.Report(problem, results); err != nil {
+		logger.Warn("Could not generate gantt charts", zap.Error(err))
 	}
 
 	fmt.Printf("Successfully generated chart: %s\n", chartPath)

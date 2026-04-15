@@ -1,4 +1,4 @@
-package reporter
+package report
 
 import (
 	"fmt"
@@ -9,15 +9,15 @@ import (
 	"github.com/velosypedno/jobshop/internal/engine"
 )
 
-type Reporter struct {
+type SimpleTableReporter struct {
 	writer io.Writer
 }
 
-func New(w io.Writer) *Reporter {
-	return &Reporter{writer: w}
+func NewSimpleTable(w io.Writer) *SimpleTableReporter {
+	return &SimpleTableReporter{writer: w}
 }
 
-func (f *Reporter) format(results []engine.Report) (string, error) {
+func (f *SimpleTableReporter) format(results []engine.Report) (string, error) {
 	var buf strings.Builder
 	w := tabwriter.NewWriter(&buf, 0, 0, 3, ' ', tabwriter.TabIndent)
 
@@ -41,7 +41,7 @@ func (f *Reporter) format(results []engine.Report) (string, error) {
 	return buf.String(), nil
 }
 
-func (r *Reporter) Generate(results []engine.Report) error {
+func (r *SimpleTableReporter) Report(results []engine.Report) error {
 	content, err := r.format(results)
 	if err != nil {
 		return err
