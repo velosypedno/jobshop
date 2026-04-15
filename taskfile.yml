@@ -5,6 +5,8 @@ vars:
   DEFAULT_CONFIG: "{{.DEFAULT_DIR}}/config.json"
   DEFAULT_ORDER: "{{.DEFAULT_DIR}}/order.json"
   BINARY_NAME: scheduler
+  DB_URL: "sqlite://db/main.db"
+  MIGRATIONS_PATH: "./db/migrations"
 
 tasks:
   default:
@@ -64,3 +66,13 @@ tasks:
     desc: Install linter
     cmds:
       - go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+
+  install:migrator:
+    desc: Install migrator
+    cmds:
+      - go install github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+
+  migrate:create:
+    desc: Create a new migration file (usage task migrate:create name=create_users_table)
+    cmds:
+      - migrate create -ext sql -dir {{.MIGRATIONS_PATH}} -seq {{.name}}

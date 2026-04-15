@@ -3,3 +3,4 @@ vendor/
 default/
 /scheduler
 *.log
+*.db
