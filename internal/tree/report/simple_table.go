@@ -6,7 +6,7 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/velosypedno/jobshop/internal/engine"
+	"github.com/velosypedno/jobshop/internal/tree/engine"
 )
 
 type SimpleTableReporter struct {

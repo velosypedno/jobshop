@@ -1,54 +1,57 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"time"
 
-	"github.com/spf13/cobra"
-	"github.com/velosypedno/jobshop/internal/app"
-	"github.com/velosypedno/jobshop/internal/parser"
+	"github.com/velosypedno/jobshop/internal/tree/app"
+	"github.com/velosypedno/jobshop/internal/tree/parser"
 )
 
 func main() {
-	var configPath string
-	var ordersPath string
-	var customName string
+	var (
+		configPath string
+		ordersPath string
+		customName string
+	)
 
-	var rootCmd = &cobra.Command{
-		Use:   "scheduler",
-		Short: "Resource allocation scheduler for factory production",
-		Long:  `A tool to optimize production plans using various strategies like Simulated Annealing and Genetic Algorithms.`,
-		Run: func(cmd *cobra.Command, args []string) {
-			machinesConfig, templates, strategies, err := parser.ParseFactoryConfig(configPath)
-			if err != nil {
-				fmt.Printf("Error parsing factory config: %v\n", err)
-				os.Exit(1)
-			}
+	flag.StringVar(&configPath, "config", "example/config.json", "path to factory configuration file")
+	flag.StringVar(&configPath, "c", "example/config.json", "path to factory configuration file (shorthand)")
 
-			orders, err := parser.ParseOrders(ordersPath)
-			if err != nil {
-				fmt.Printf("Error parsing orders: %v\n", err)
-				os.Exit(1)
-			}
+	flag.StringVar(&ordersPath, "orders", "example/order.json", "path to orders file")
+	flag.StringVar(&ordersPath, "o", "example/order.json", "path to orders file (shorthand)")
 
-			a := app.New(machinesConfig, templates, strategies)
-			startTime := time.Date(2022, 1, 1, 0, 0, 0, 0, time.Local)
+	flag.StringVar(&customName, "name", "", "custom name for the output report")
+	flag.StringVar(&customName, "n", "", "custom name for the output report (shorthand)")
 
-			err = a.Run(startTime, orders, customName)
-			if err != nil {
-				fmt.Printf("Application run error: %v\n", err)
-				os.Exit(1)
-			}
-		},
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "Resource allocation scheduler for factory production.\n\n")
+		flag.PrintDefaults()
 	}
 
-	rootCmd.Flags().StringVarP(&configPath, "config", "c", "example/config.json", "path to factory configuration file")
-	rootCmd.Flags().StringVarP(&ordersPath, "orders", "o", "example/order.json", "path to orders file")
-	rootCmd.Flags().StringVarP(&customName, "name", "n", "", "custom name for the output report")
+	flag.Parse()
 
-	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
+	machinesConfig, templates, strategies, err := parser.ParseFactoryConfig(configPath)
+	if err != nil {
+		fmt.Printf("Error parsing factory config: %v\n", err)
+		os.Exit(1)
+	}
+
+	orders, err := parser.ParseOrders(ordersPath)
+	if err != nil {
+		fmt.Printf("Error parsing orders: %v\n", err)
+		os.Exit(1)
+	}
+
+	a := app.New(machinesConfig, templates, strategies)
+	startTime := time.Date(2022, 1, 1, 0, 0, 0, 0, time.Local)
+
+	err = a.Run(startTime, orders, customName)
+	if err != nil {
+		fmt.Printf("Application run error: %v\n", err)
 		os.Exit(1)
 	}
 }

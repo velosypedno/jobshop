@@ -1,20 +1,20 @@
-package factory
+package digitaltwin
 
 import (
 	"fmt"
 	"time"
 
-	"github.com/velosypedno/jobshop/internal/parser"
+	"github.com/velosypedno/jobshop/internal/tree/parser"
 	"github.com/velosypedno/jobshop/pkg/tree/core"
 )
 
-type Factory struct {
+type Manufactory struct {
 	Machines  []*core.Machine
 	Templates map[string]core.JobTemplate
 }
 
-func New(machineConfigs []parser.MachineConfig, templates []core.JobTemplate) *Factory {
-	f := &Factory{}
+func New(machineConfigs []parser.MachineConfig, templates []core.JobTemplate) *Manufactory {
+	f := &Manufactory{}
 	f.Templates = make(map[string]core.JobTemplate)
 
 	for _, t := range templates {
@@ -35,7 +35,7 @@ func New(machineConfigs []parser.MachineConfig, templates []core.JobTemplate) *F
 	return f
 }
 
-func (f *Factory) GetProblem(orders []parser.OrderDTO, startTime time.Time) *core.Problem {
+func (f *Manufactory) NewProblem(orders []parser.OrderDTO, startTime time.Time) *core.Problem {
 	jobs, err := f.createJobsFromOrders(orders)
 	if err != nil {
 		return &core.Problem{}
@@ -49,7 +49,7 @@ func (f *Factory) GetProblem(orders []parser.OrderDTO, startTime time.Time) *cor
 	return &problem
 }
 
-func (f *Factory) createJobsFromOrders(orders []parser.OrderDTO) ([]*core.Job, error) {
+func (f *Manufactory) createJobsFromOrders(orders []parser.OrderDTO) ([]*core.Job, error) {
 	var jobs []*core.Job
 	jobIDCounter := core.JobID(0)
 

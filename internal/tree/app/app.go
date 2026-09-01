@@ -6,37 +6,37 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/velosypedno/jobshop/internal/engine"
-	"github.com/velosypedno/jobshop/internal/factory"
-	"github.com/velosypedno/jobshop/internal/parser"
-	"github.com/velosypedno/jobshop/internal/report"
+	"github.com/velosypedno/jobshop/internal/tree/digitaltwin"
+	"github.com/velosypedno/jobshop/internal/tree/engine"
+	"github.com/velosypedno/jobshop/internal/tree/parser"
+	"github.com/velosypedno/jobshop/internal/tree/report"
 	"github.com/velosypedno/jobshop/pkg/tree/core"
 	"go.uber.org/zap"
 )
 
 type App struct {
-	Factory *factory.Factory
-	Engine  *engine.Engine
+	ManufactoryTwin *digitaltwin.Manufactory
+	Engine          *engine.Engine
 }
 
 func New(machinesConfig []parser.MachineConfig, templates []core.JobTemplate, strategies []core.Strategy) *App {
 	return &App{
-		Factory: factory.New(machinesConfig, templates),
-		Engine:  engine.New(strategies...),
+		ManufactoryTwin: digitaltwin.New(machinesConfig, templates),
+		Engine:          engine.New(strategies...),
 	}
 }
 
 func (a *App) Run(startTime time.Time, orders []parser.OrderDTO, customName string) error {
+	// Step 1: prepare output directories and paths
 	outputDir := "results"
 	if err := os.MkdirAll(outputDir, 0755); err != nil {
 		return fmt.Errorf("creating directory: %v", err)
 	}
-
 	timestamp := time.Now().Format("20060102-150405")
 	baseName := fmt.Sprintf("plan_%s%s", timestamp, customName)
 
+	// Step 2: setup scheduler engine that will run problem against each sceduling strategy
 	logPath := filepath.Join(outputDir, baseName+".log")
-
 	cfg := zap.NewProductionConfig()
 	cfg.OutputPaths = []string{logPath}
 
@@ -53,15 +53,19 @@ func (a *App) Run(startTime time.Time, orders []parser.OrderDTO, customName stri
 		zap.Int("orders_count", len(orders)),
 	)
 
-	problem := a.Factory.GetProblem(orders, startTime)
-	results, err := a.Engine.Solve(problem)
+	// Step 3
+	problem := a.ManufactoryTwin.NewProblem(orders, startTime)
+
+	// Step 4
+	schedulingReports, err := a.Engine.Solve(problem)
 	if err != nil {
 		logger.Error("Planning failed", zap.Error(err))
 		return fmt.Errorf("during planning: %v", err)
 	}
-	stdoutTable := report.NewSimpleTable(os.Stdout)
 
-	if err := stdoutTable.Report(results); err != nil {
+	// Step 5: create reports
+	stdoutTable := report.NewSimpleTable(os.Stdout)
+	if err := stdoutTable.Report(schedulingReports); err != nil {
 		logger.Warn("Could not generate text report", zap.Error(err))
 	}
 
@@ -73,7 +77,7 @@ func (a *App) Run(startTime time.Time, orders []parser.OrderDTO, customName stri
 	defer outputFile.Close()
 
 	ganttCharts := report.NewGanttCharts(outputFile)
-	if err := ganttCharts.Report(problem, results); err != nil {
+	if err := ganttCharts.Report(problem, schedulingReports); err != nil {
 		logger.Warn("Could not generate gantt charts", zap.Error(err))
 	}
 

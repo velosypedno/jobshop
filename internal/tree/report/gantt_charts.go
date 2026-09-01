@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/velosypedno/jobshop/internal/engine"
+	"github.com/velosypedno/jobshop/internal/tree/engine"
 	"github.com/velosypedno/jobshop/pkg/tree/core"
 
 	"github.com/go-echarts/go-echarts/v2/charts"
