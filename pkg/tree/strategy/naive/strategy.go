@@ -3,13 +3,13 @@ package naive
 import (
 	"time"
 
-	"github.com/velosypedno/jobshop/internal/core"
+	"github.com/velosypedno/jobshop/pkg/tree/core"
 	"go.uber.org/zap"
 )
 
 const strategyType = "Greedy"
-const description = `Greedy Earliest Completion Time scheduling. Each operation is assigned to the machine that 
-provides the earliest completion time, taking into account the technological sequence 
+const description = `Greedy Earliest Completion Time scheduling. Each operation is assigned to the machine that
+provides the earliest completion time, taking into account the technological sequence
 (dependence on child operations) and already occupied time slots.`
 
 type Strategy struct {

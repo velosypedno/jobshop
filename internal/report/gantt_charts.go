@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/velosypedno/jobshop/internal/core"
 	"github.com/velosypedno/jobshop/internal/engine"
+	"github.com/velosypedno/jobshop/pkg/tree/core"
 
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/components"
@@ -16,32 +16,32 @@ import (
 )
 
 const renderItemJS = `function (params, api) {
-    var categoryIndex = api.value(0); 
-    var start = api.coord([api.value(1), categoryIndex]); 
-    var end = api.coord([api.value(2), categoryIndex]); 
-    var height = api.size([0, 1])[1] * 0.6; 
+    var categoryIndex = api.value(0);
+    var start = api.coord([api.value(1), categoryIndex]);
+    var end = api.coord([api.value(2), categoryIndex]);
+    var height = api.size([0, 1])[1] * 0.6;
     var width = Math.max(end[0] - start[0], 1);
 
-    var rectShape = echarts.graphic.clipRectByRect({ 
-        x: start[0], 
-        y: start[1] - height / 2, 
-        width: width, 
-        height: height 
-    }, { 
-        x: params.coordSys.x, 
-        y: params.coordSys.y, 
-        width: params.coordSys.width, 
-        height: params.coordSys.height 
+    var rectShape = echarts.graphic.clipRectByRect({
+        x: start[0],
+        y: start[1] - height / 2,
+        width: width,
+        height: height
+    }, {
+        x: params.coordSys.x,
+        y: params.coordSys.y,
+        width: params.coordSys.width,
+        height: params.coordSys.height
     });
 
     var operationName = api.value(3);
-    
+
     var isLargeEnough = width > 90;
 
-    var rect = { 
-        type: 'rect', 
-        transition: ['shape'], 
-        shape: rectShape, 
+    var rect = {
+        type: 'rect',
+        transition: ['shape'],
+        shape: rectShape,
         style: api.style({
             stroke: '#ffffff',
             lineWidth: 0.5
@@ -66,7 +66,7 @@ const renderItemJS = `function (params, api) {
         };
     }
 
-    return rectShape && rect; 
+    return rectShape && rect;
 }`
 
 const renderTooltipJS = `function(p){
@@ -74,8 +74,8 @@ const renderTooltipJS = `function(p){
 	var dateEnd = new Date(p.value[2]);
 	var timeStart = dateStart.toLocaleTimeString('uk-UA', {hour12: false});
 	var timeEnd = dateEnd.toLocaleTimeString('uk-UA', {hour12: false});
-	return '<b>' + p.value[4] + '</b><br/>' + 
-			'Operation: ' + p.value[3] + '<br/>' + 
+	return '<b>' + p.value[4] + '</b><br/>' +
+			'Operation: ' + p.value[3] + '<br/>' +
 			timeStart + ' - ' + timeEnd;
 }`
 

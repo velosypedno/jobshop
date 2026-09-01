@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/velosypedno/jobshop/internal/core"
+	"github.com/velosypedno/jobshop/pkg/tree/core"
 	"go.uber.org/zap"
 )
 

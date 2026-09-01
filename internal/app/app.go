@@ -6,11 +6,11 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/velosypedno/jobshop/internal/core"
 	"github.com/velosypedno/jobshop/internal/engine"
 	"github.com/velosypedno/jobshop/internal/factory"
 	"github.com/velosypedno/jobshop/internal/parser"
 	"github.com/velosypedno/jobshop/internal/report"
+	"github.com/velosypedno/jobshop/pkg/tree/core"
 	"go.uber.org/zap"
 )
 

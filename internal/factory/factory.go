@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/velosypedno/jobshop/internal/core"
 	"github.com/velosypedno/jobshop/internal/parser"
+	"github.com/velosypedno/jobshop/pkg/tree/core"
 )
 
 type Factory struct {
