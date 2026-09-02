@@ -13,25 +13,25 @@ import (
 	"github.com/velosypedno/jobshop/pkg/tree/strategy/tabu"
 )
 
-func ParseFactoryConfig(filePath string) ([]MachineConfig, []core.JobTemplate, []core.Strategy, error) {
+func ParseFactoryConfig(filePath string) ([]core.MachineConfigEntry, []core.JobTemplate, []core.Strategy, error) {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to read config file: %w", err)
 	}
 
-	var config FactoryConfig
+	var config factoryConfig
 	if err := json.Unmarshal(data, &config); err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to parse json: %w", err)
 	}
 
-	machineTypeMap := make(map[string]core.MachineType)
+	machineNameToTypeID := make(map[string]core.MachineType)
 	for _, m := range config.Machines {
-		machineTypeMap[m.TypeName] = core.MachineType(m.TypeID)
+		machineNameToTypeID[m.TypeName] = core.MachineType(m.TypeID)
 	}
 
 	templates := make([]core.JobTemplate, 0, len(config.JobTemplates))
 	for _, j := range config.JobTemplates {
-		operations, err := convertOperations(j.Operations, machineTypeMap)
+		operations, err := convertOperations(j.Operations, machineNameToTypeID)
 		if err != nil {
 			return nil, nil, nil, err
 		}
@@ -50,10 +50,19 @@ func ParseFactoryConfig(filePath string) ([]MachineConfig, []core.JobTemplate, [
 		strategies = append(strategies, s)
 	}
 
-	return config.Machines, templates, strategies, nil
+	machineConfigEntries := make([]core.MachineConfigEntry, 0, len(config.Machines))
+	for _, machineConfigDTO := range config.Machines {
+		var mConfigEntry core.MachineConfigEntry
+		mConfigEntry.Count = machineConfigDTO.Count
+		mConfigEntry.Name = machineConfigDTO.TypeName
+		mConfigEntry.Type = core.MachineType(machineConfigDTO.TypeID)
+		machineConfigEntries = append(machineConfigEntries, mConfigEntry)
+	}
+
+	return machineConfigEntries, templates, strategies, nil
 }
 
-func convertOperations(dtos []OperationTemplateDTO, machineTypes map[string]core.MachineType) ([]core.OperationTemplate, error) {
+func convertOperations(dtos []operationTemplateDTO, machineTypes map[string]core.MachineType) ([]core.OperationTemplate, error) {
 	if dtos == nil {
 		return nil, nil
 	}
@@ -85,24 +94,24 @@ func convertOperations(dtos []OperationTemplateDTO, machineTypes map[string]core
 	return res, nil
 }
 
-func createStrategy(dto StrategyDTO) (core.Strategy, error) {
+func createStrategy(dto strategyDTO) (core.Strategy, error) {
 	switch dto.Type {
 	case "ga":
-		var p GAConfigDTO
+		var p gaConfigDTO
 		if err := json.Unmarshal(dto.Params, &p); err != nil {
 			return nil, err
 		}
 		return ga.New(p.PopulationSize, p.Generations, p.MutationRate, p.CrossoverRate, p.ElitismRatio, dto.Name), nil
 
 	case "tabu":
-		var p TabuConfigDTO
+		var p tabuConfigDTO
 		if err := json.Unmarshal(dto.Params, &p); err != nil {
 			return nil, err
 		}
 		return tabu.New(p.TabuSize, p.MaxIterations, p.NeighborsCount, dto.Name), nil
 
 	case "annealing_priority_based":
-		var p AnnealingConfigDTO
+		var p annealingConfigDTO
 		if err := json.Unmarshal(dto.Params, &p); err != nil {
 			return nil, err
 		}

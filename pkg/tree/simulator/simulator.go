@@ -14,14 +14,14 @@ type SimulationResult struct {
 }
 
 type FactorySimulator struct {
-	Ops          []*InternalOp
+	Ops          []*internalOp
 	machines     []*core.Machine
 	startTime    time.Time
 	rootOpIDs    map[core.JobID][]core.OperationID
 	originalJobs []*core.Job
 }
 
-type InternalOp struct {
+type internalOp struct {
 	ID          core.OperationID
 	BaseOp      *core.Operation
 	JobID       core.JobID
@@ -30,7 +30,7 @@ type InternalOp struct {
 	ChildrenIDs []core.OperationID
 }
 
-func (o InternalOp) String() string {
+func (o internalOp) String() string {
 	parentInfo := "NONE"
 	if o.ParentID != -1 {
 		parentInfo = fmt.Sprintf("%d", o.ParentID)
@@ -50,7 +50,7 @@ func (o InternalOp) String() string {
 
 func NewFactorySimulator(problem *core.Problem) *FactorySimulator {
 	sim := &FactorySimulator{
-		Ops:          []*InternalOp{},
+		Ops:          []*internalOp{},
 		machines:     problem.Machines,
 		startTime:    problem.StartTime,
 		rootOpIDs:    make(map[core.JobID][]core.OperationID),
@@ -65,18 +65,18 @@ func (s *FactorySimulator) TotalOperations() int {
 }
 
 func (s *FactorySimulator) flattenJobs(jobs []*core.Job) {
-	registry := make(map[core.JobID]map[core.OperationID]*InternalOp)
+	registry := make(map[core.JobID]map[core.OperationID]*internalOp)
 
 	globalIDCounter := core.OperationID(0)
 
 	var registerRecursive func(jobID core.JobID, ops []*core.Operation)
 	registerRecursive = func(jobID core.JobID, ops []*core.Operation) {
 		if _, ok := registry[jobID]; !ok {
-			registry[jobID] = make(map[core.OperationID]*InternalOp)
+			registry[jobID] = make(map[core.OperationID]*internalOp)
 		}
 
 		for _, op := range ops {
-			internal := &InternalOp{
+			internal := &internalOp{
 				ID:          globalIDCounter,
 				BaseOp:      op,
 				JobID:       jobID,
@@ -172,7 +172,7 @@ func (s *FactorySimulator) Simulate(weights []float64) *SimulationResult {
 		}
 
 	}
-	solution := s.Assemble(sess)
+	solution := s.assemble(sess)
 	return &SimulationResult{
 		Cost:         maxFinishTime.Sub(s.startTime).Seconds(),
 		MachineSlots: sess.OccupiedMap,
@@ -190,7 +190,7 @@ func pickBestOperation(readyList []core.OperationID, weights []float64) int {
 	return bestIdx
 }
 
-func (s *FactorySimulator) Assemble(sess *session) core.Solution {
+func (s *FactorySimulator) assemble(sess *session) core.Solution {
 	solution := core.NewSolution()
 
 	for _, op := range s.Ops {

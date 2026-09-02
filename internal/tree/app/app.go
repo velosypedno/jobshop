@@ -6,11 +6,10 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/velosypedno/jobshop/internal/tree/digitaltwin"
 	"github.com/velosypedno/jobshop/internal/tree/engine"
-	"github.com/velosypedno/jobshop/internal/tree/parser"
 	"github.com/velosypedno/jobshop/internal/tree/report"
 	"github.com/velosypedno/jobshop/pkg/tree/core"
+	"github.com/velosypedno/jobshop/pkg/tree/digitaltwin"
 	"go.uber.org/zap"
 )
 
@@ -19,14 +18,14 @@ type App struct {
 	Engine          *engine.Engine
 }
 
-func New(machinesConfig []parser.MachineConfig, templates []core.JobTemplate, strategies []core.Strategy) *App {
+func New(machinesConfig []core.MachineConfigEntry, templates []core.JobTemplate, strategies []core.Strategy) *App {
 	return &App{
 		ManufactoryTwin: digitaltwin.New(machinesConfig, templates),
 		Engine:          engine.New(strategies...),
 	}
 }
 
-func (a *App) Run(startTime time.Time, orders []parser.OrderDTO, customName string) error {
+func (a *App) Run(startTime time.Time, orders []core.OrderEntry, customName string) error {
 	// Step 1: prepare output directories and paths
 	outputDir := "results"
 	if err := os.MkdirAll(outputDir, 0755); err != nil {

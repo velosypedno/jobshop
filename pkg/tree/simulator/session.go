@@ -96,7 +96,7 @@ func (s *session) findEarliestGap(startTime time.Time, duration time.Duration, o
 	}
 }
 
-func (s *session) GetReadyTime(op *InternalOp) time.Time {
+func (s *session) GetReadyTime(op *internalOp) time.Time {
 	readyTime := s.StartTime
 
 	for _, childGlobalID := range op.ChildrenIDs {

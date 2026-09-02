@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/velosypedno/jobshop/internal/tree/parser"
 	"github.com/velosypedno/jobshop/pkg/tree/core"
 )
 
@@ -13,7 +12,7 @@ type Manufactory struct {
 	Templates map[string]core.JobTemplate
 }
 
-func New(machineConfigs []parser.MachineConfig, templates []core.JobTemplate) *Manufactory {
+func New(machineConfigs []core.MachineConfigEntry, templates []core.JobTemplate) *Manufactory {
 	f := &Manufactory{}
 	f.Templates = make(map[string]core.JobTemplate)
 
@@ -23,19 +22,19 @@ func New(machineConfigs []parser.MachineConfig, templates []core.JobTemplate) *M
 
 	var machineCounter int
 	for _, mConf := range machineConfigs {
-		mType := core.MachineType(mConf.TypeID)
+		mType := mConf.Type
 
 		for i := 0; i < mConf.Count; i++ {
 			machineCounter++
-			m := core.NewMachine(core.MachineID(machineCounter), mType, mConf.TypeName)
-			m.Name = mConf.TypeName
+			m := core.NewMachine(core.MachineID(machineCounter), mType, mConf.Name)
+			m.Name = mConf.Name
 			f.Machines = append(f.Machines, &m)
 		}
 	}
 	return f
 }
 
-func (f *Manufactory) NewProblem(orders []parser.OrderDTO, startTime time.Time) *core.Problem {
+func (f *Manufactory) NewProblem(orders []core.OrderEntry, startTime time.Time) *core.Problem {
 	jobs, err := f.createJobsFromOrders(orders)
 	if err != nil {
 		return &core.Problem{}
@@ -49,7 +48,7 @@ func (f *Manufactory) NewProblem(orders []parser.OrderDTO, startTime time.Time) 
 	return &problem
 }
 
-func (f *Manufactory) createJobsFromOrders(orders []parser.OrderDTO) ([]*core.Job, error) {
+func (f *Manufactory) createJobsFromOrders(orders []core.OrderEntry) ([]*core.Job, error) {
 	var jobs []*core.Job
 	jobIDCounter := core.JobID(0)
 

@@ -86,3 +86,9 @@ func (m MachineTimeSlots) GetUtilizationLevel(duration time.Duration) float64 {
 
 	return (float64(sumDuration) / float64(len(m))) / float64(duration)
 }
+
+type MachineConfigEntry struct {
+	Type  MachineType
+	Name  string
+	Count int
+}
