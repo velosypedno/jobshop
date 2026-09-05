@@ -67,8 +67,6 @@ func (s *FactorySimulator) flattenJobs(jobs []*core.Job) {
 	// I have no idea why I needed so strange map
 	registry := make(map[core.JobID]map[core.OperationID]*internalOp)
 
-	globalIDCounter := core.OperationID(0)
-
 	var registerRecursive func(jobID core.JobID, ops []*core.Operation)
 	registerRecursive = func(jobID core.JobID, ops []*core.Operation) {
 		if _, ok := registry[jobID]; !ok {
@@ -77,7 +75,7 @@ func (s *FactorySimulator) flattenJobs(jobs []*core.Job) {
 
 		for _, op := range ops {
 			internal := &internalOp{
-				ID:          globalIDCounter,
+				ID:          op.ID,
 				BaseOp:      op,
 				JobID:       jobID,
 				ParentID:    -1,
@@ -87,7 +85,6 @@ func (s *FactorySimulator) flattenJobs(jobs []*core.Job) {
 
 			s.ops = append(s.ops, internal)
 			registry[jobID][op.ID] = internal
-			globalIDCounter++
 
 			registerRecursive(jobID, op.ChildOperations)
 		}
@@ -145,7 +142,12 @@ func (s *FactorySimulator) Simulate(weights []float64) *SimulationResult {
 	var maxFinishOffset time.Duration = 0
 
 	for len(readyList) > 0 {
-		bestPos := pickBestOperation(readyList, weights)
+		bestPos := 0
+		for i := 1; i < len(readyList); i++ {
+			if weights[readyList[i]] < weights[readyList[bestPos]] {
+				bestPos = i
+			}
+		}
 		opIdx := readyList[bestPos]
 		op := s.ops[opIdx]
 
@@ -166,35 +168,9 @@ func (s *FactorySimulator) Simulate(weights []float64) *SimulationResult {
 		}
 
 	}
-	solution := s.assemble(sess)
+
 	return &SimulationResult{
 		Cost:     maxFinishOffset.Seconds(),
-		Solution: solution,
+		Solution: sess.Solution,
 	}
-}
-
-func pickBestOperation(readyList []core.OperationID, weights []float64) int {
-	bestIdx := 0
-	for i := 1; i < len(readyList); i++ {
-		if weights[readyList[i]] < weights[readyList[bestIdx]] {
-			bestIdx = i
-		}
-	}
-	return bestIdx
-}
-
-func (s *FactorySimulator) assemble(sess *session) core.Solution {
-	solution := core.NewSolution()
-
-	for _, op := range s.ops {
-		opSolution, ok := sess.opSolutions[op.ID]
-
-		if !ok {
-			panic(fmt.Sprintf("No solution found in session for operation with ID: %v", op.ID))
-		}
-
-		solution.OperationMap[op.BaseOp.ID] = opSolution
-	}
-
-	return solution
 }

@@ -8,10 +8,10 @@ import (
 )
 
 type session struct {
-	OccupiedMap      core.MachineTimeSlots
-	MachineTypeIndex core.MachineTypeIndex
+	occupiedMap      core.MachineTimeSlots
+	machineTypeIndex core.MachineTypeIndex
 
-	opSolutions map[core.OperationID]core.OpSolution
+	Solution core.Solution
 }
 
 func newSession(machines []*core.Machine) *session {
@@ -25,11 +25,14 @@ func newSession(machines []*core.Machine) *session {
 		machineTypeIndex[machine.Type] = append(machineTypeIndex[machine.Type], machine.ID)
 	}
 
+	solution := core.Solution{
+		OperationMap: make(map[core.OperationID]core.OpSolution),
+	}
 	return &session{
-		OccupiedMap:      timeSlotsMap,
-		MachineTypeIndex: machineTypeIndex,
+		occupiedMap:      timeSlotsMap,
+		machineTypeIndex: machineTypeIndex,
 
-		opSolutions: make(map[core.OperationID]core.OpSolution),
+		Solution: solution,
 	}
 }
 
@@ -37,14 +40,14 @@ func (s *session) FindOpSulotion(
 	op *internalOp,
 ) core.OpSolution {
 	startOffset := s.getReadyOffset(op)
-	targetMachineIDs := s.MachineTypeIndex[op.BaseOp.MachineType]
+	targetMachineIDs := s.machineTypeIndex[op.BaseOp.MachineType]
 
 	var bestMachineID core.MachineID
 	var bestPeriod core.Period
 	firstFound := false
 
 	for _, mID := range targetMachineIDs {
-		currentPeriod := s.findEarliestGap(startOffset, op.BaseOp.Duration, s.OccupiedMap[mID])
+		currentPeriod := s.findEarliestGap(startOffset, op.BaseOp.Duration, s.occupiedMap[mID])
 
 		if !firstFound || currentPeriod.End() < bestPeriod.End() {
 			bestPeriod = currentPeriod
@@ -58,8 +61,8 @@ func (s *session) FindOpSulotion(
 		MachineID: bestMachineID,
 	}
 
-	s.opSolutions[op.ID] = opSolution
-	s.OccupiedMap[bestMachineID] = append(s.OccupiedMap[bestMachineID], bestPeriod)
+	s.Solution.OperationMap[op.ID] = opSolution
+	s.occupiedMap[bestMachineID] = append(s.occupiedMap[bestMachineID], bestPeriod)
 
 	return opSolution
 }
@@ -98,7 +101,7 @@ func (s *session) getReadyOffset(op *internalOp) time.Duration {
 	var readyOffset time.Duration = 0
 
 	for _, childGlobalID := range op.ChildrenIDs {
-		if childOpSoluiton, ok := s.opSolutions[childGlobalID]; ok {
+		if childOpSoluiton, ok := s.Solution.OperationMap[childGlobalID]; ok {
 			if childOpSoluiton.Period.End() > readyOffset {
 				readyOffset = childOpSoluiton.Period.End()
 			}
