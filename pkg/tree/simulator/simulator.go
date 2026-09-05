@@ -139,7 +139,7 @@ func (s *FactorySimulator) Simulate(weights []float64) *SimulationResult {
 	}
 
 	sess := newSession(s.problem.Machines)
-	var maxFinishOffset time.Duration = 0
+	var finishOffset time.Duration = 0
 
 	for len(readyList) > 0 {
 		bestPos := 0
@@ -156,8 +156,8 @@ func (s *FactorySimulator) Simulate(weights []float64) *SimulationResult {
 
 		opSolution := sess.FindOpSulotion(op)
 
-		if opSolution.Period.End() > maxFinishOffset {
-			maxFinishOffset = opSolution.Period.End()
+		if opSolution.Period.End() > finishOffset {
+			finishOffset = opSolution.Period.End()
 		}
 
 		if op.ParentID != -1 {
@@ -170,7 +170,7 @@ func (s *FactorySimulator) Simulate(weights []float64) *SimulationResult {
 	}
 
 	return &SimulationResult{
-		Cost:     maxFinishOffset.Seconds(),
+		Cost:     finishOffset.Seconds(),
 		Solution: sess.Solution,
 	}
 }
