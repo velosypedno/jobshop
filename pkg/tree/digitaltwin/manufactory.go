@@ -2,7 +2,6 @@ package digitaltwin
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/velosypedno/jobshop/pkg/tree/core"
 )
@@ -34,16 +33,15 @@ func New(machineConfigs []core.MachineConfigEntry, templates []core.JobTemplate)
 	return f
 }
 
-func (f *Manufactory) NewProblem(orders []core.OrderEntry, startTime time.Time) *core.Problem {
+func (f *Manufactory) NewProblem(orders []core.OrderEntry) *core.Problem {
 	jobs, err := f.createJobsFromOrders(orders)
 	if err != nil {
 		return &core.Problem{}
 	}
 
 	problem := core.Problem{
-		Jobs:      jobs,
-		Machines:  f.Machines,
-		StartTime: startTime,
+		Jobs:     jobs,
+		Machines: f.Machines,
 	}
 	return &problem
 }

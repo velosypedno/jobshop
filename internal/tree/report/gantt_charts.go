@@ -104,7 +104,7 @@ func generateYAxisCategories(machines []*core.Machine) []string {
 	return categories
 }
 
-func createBaseCustomChart(machines []*core.Machine, period core.Period, description string) *charts.Custom {
+func createBaseCustomChart(machines []*core.Machine, period core.Period, startTime time.Time, description string) *charts.Custom {
 	chart := charts.NewCustom()
 
 	lineCount := strings.Count(description, "\n") + 1
@@ -144,8 +144,8 @@ func createBaseCustomChart(machines []*core.Machine, period core.Period, descrip
 		}),
 		charts.WithXAxisOpts(opts.XAxis{
 			Type:      "time",
-			Min:       period.Start.UnixMilli(),
-			Max:       period.End.UnixMilli(),
+			Min:       startTime.UnixMilli(),
+			Max:       (startTime.Add(period.Duration)).UnixMilli(),
 			SplitLine: &opts.SplitLine{Show: opts.Bool(true)},
 			AxisLabel: &opts.AxisLabel{
 				Show:       opts.Bool(true),
@@ -201,7 +201,7 @@ func createBaseCustomChart(machines []*core.Machine, period core.Period, descrip
 	return chart
 }
 
-func addSolutionSeries(chart *charts.Custom, solution *core.Solution, problemCtx *core.ProblemContext) {
+func addSolutionSeries(chart *charts.Custom, solution *core.Solution, startTime time.Time, problemCtx *core.ProblemContext) {
 	mMap := generateMachineIndexMap(problemCtx.Problem.Machines)
 
 	for _, job := range problemCtx.Problem.Jobs {
@@ -214,8 +214,8 @@ func addSolutionSeries(chart *charts.Custom, solution *core.Solution, problemCtx
 			seriesData = append(seriesData, opts.CustomData{
 				Value: []interface{}{
 					mMap[opSolution.MachineID],
-					problemCtx.Problem.StartTime.Add(opSolution.Offset).UnixMilli(),
-					problemCtx.Problem.StartTime.Add(opSolution.Offset).Add(opSolution.Duration).UnixMilli(),
+					startTime.Add(opSolution.Period.Offset).UnixMilli(),
+					startTime.Add(opSolution.Period.Offset).Add(opSolution.Period.Duration).UnixMilli(),
 					op.Name,
 					fullJobName,
 				},
@@ -253,6 +253,7 @@ func formatStrategyDescription(report engine.Report) string {
 
 func GenerateFromSolutions(
 	problem *core.Problem,
+	startTime time.Time,
 	reports []engine.Report,
 ) *components.Page {
 	problemCtx := core.NewProblemContext(problem)
@@ -264,11 +265,11 @@ func GenerateFromSolutions(
 	page.PageTitle = "Multi-Strategy Comparison"
 
 	for _, r := range reports {
-		period := r.Solution.GetPeriod(problem.StartTime)
+		period := r.Solution.GetPeriod()
 		description := formatStrategyDescription(r)
 
-		chart := createBaseCustomChart(problem.Machines, period, description)
-		addSolutionSeries(chart, r.Solution, problemCtx)
+		chart := createBaseCustomChart(problem.Machines, period, startTime, description)
+		addSolutionSeries(chart, r.Solution, startTime, problemCtx)
 
 		page.AddCharts(chart)
 	}
@@ -284,8 +285,8 @@ func NewGanttCharts(w io.Writer) *GanttChartsReporter {
 	return &GanttChartsReporter{writer: w}
 }
 
-func (r *GanttChartsReporter) Report(problem *core.Problem, results []engine.Report) error {
-	page := GenerateFromSolutions(problem, results)
+func (r *GanttChartsReporter) Report(problem *core.Problem, startTime time.Time, results []engine.Report) error {
+	page := GenerateFromSolutions(problem, startTime, results)
 	return page.Render(r.writer)
 
 }

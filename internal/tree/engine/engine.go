@@ -45,11 +45,11 @@ func (e *Engine) Solve(p *core.Problem) ([]Report, error) {
 			SchedulingTime:      time.Since(startPlanning),
 		}
 
-		workflowPeriod := solution.GetPeriod(p.StartTime)
-		makeSpan := workflowPeriod.Duration()
+		workflowPeriod := solution.GetPeriod()
+		makeSpan := workflowPeriod.Duration
 		utilization := 0.0
 		if makeSpan > 0 {
-			utilization = solution.GerUtilizationLevel(p.StartTime)
+			utilization = solution.GerUtilizationLevel()
 		}
 
 		results = append(results, Report{

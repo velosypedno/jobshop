@@ -3,18 +3,17 @@ package core
 import "time"
 
 type Period struct {
-	Start time.Time
-	End   time.Time
+	Offset   time.Duration
+	Duration time.Duration
 }
 
-func (p Period) Duration() time.Duration {
-	return p.End.Sub(p.Start)
+func (p Period) End() time.Duration {
+	return p.Offset + p.Duration
 }
 
 type OpSolution struct {
 	MachineID MachineID
-	Offset    time.Duration
-	Duration  time.Duration
+	Period    Period
 }
 
 type Solution struct {
@@ -27,32 +26,32 @@ func NewSolution() Solution {
 	}
 }
 
-func (s *Solution) GetPeriod(startTime time.Time) Period {
-	var maxEndTime time.Time
+func (s *Solution) GetPeriod() Period {
+	var maxEnd time.Duration
 
 	for _, opSol := range s.OperationMap {
-		endTime := startTime.Add(opSol.Offset + opSol.Duration)
-		if endTime.After(maxEndTime) {
-			maxEndTime = endTime
+		endTime := opSol.Period.Offset + opSol.Period.Duration
+		if endTime > maxEnd {
+			maxEnd = endTime
 		}
 	}
 
 	return Period{
-		Start: startTime,
-		End:   maxEndTime,
+		Offset:   0,
+		Duration: maxEnd,
 	}
 }
 
 func (s *Solution) GetAllOperationsDuration() time.Duration {
 	duration := time.Duration(0)
 	for _, opSol := range s.OperationMap {
-		duration += opSol.Duration
+		duration += opSol.Period.Duration
 	}
 	return duration
 }
 
-func (s *Solution) GerUtilizationLevel(startTime time.Time) float64 {
-	period := s.GetPeriod(startTime)
+func (s *Solution) GerUtilizationLevel() float64 {
+	period := s.GetPeriod()
 
 	machinesCount := 0
 
@@ -66,5 +65,5 @@ func (s *Solution) GerUtilizationLevel(startTime time.Time) float64 {
 	}
 	duration := s.GetAllOperationsDuration()
 
-	return float64(duration) / (float64(machinesCount) * float64(period.Duration()))
+	return float64(duration) / (float64(machinesCount) * float64(period.Duration))
 }

@@ -47,7 +47,7 @@ func (s *Strategy) Plan(problem *core.Problem) core.Solution {
 		zap.Int("machines_count", len(problem.Machines)),
 	)
 
-	session := newSession(problem.Machines, problem.StartTime)
+	session := newSession(problem.Machines)
 
 	solV2 := core.NewSolution()
 
@@ -55,9 +55,7 @@ func (s *Strategy) Plan(problem *core.Problem) core.Solution {
 		planJob(job, session, &solV2)
 	}
 
-	s.logger.Info("Greedy planning completed",
-		zap.Duration("elapsed", time.Since(problem.StartTime)),
-	)
+	s.logger.Info("Greedy planning completed")
 
 	return solV2
 }
@@ -83,14 +81,14 @@ func planOperation(
 		planOperation(child, session, solution)
 	}
 
-	lastChildEndTime := session.StartTime
+	var lastChildEndTime time.Duration = 0
 	for _, childOp := range operation.ChildOperations {
 		if childOp == nil {
 			continue
 		}
 		childSolution := solution.OperationMap[childOp.ID]
-		childCompletionTime := session.StartTime.Add(childSolution.Offset).Add(childOp.Duration)
-		if childCompletionTime.After(lastChildEndTime) {
+		childCompletionTime := childSolution.Period.Offset + childOp.Duration
+		if childCompletionTime > lastChildEndTime {
 			lastChildEndTime = childCompletionTime
 		}
 	}
@@ -101,9 +99,9 @@ func planOperation(
 		operation.MachineType,
 	)
 
-	operationSolutionV2.Duration = operation.Duration
+	operationSolutionV2.Period.Duration = operation.Duration
 	operationSolutionV2.MachineID = targetMachineID
-	operationSolutionV2.Offset = targetPeriod.Start.Sub(session.StartTime)
+	operationSolutionV2.Period.Offset = targetPeriod.Offset
 	solution.OperationMap[operation.ID] = operationSolutionV2
 
 	session.OccupiedMap[targetMachineID] = append(session.OccupiedMap[targetMachineID], targetPeriod)

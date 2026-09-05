@@ -3,7 +3,6 @@ package tabu
 import (
 	"fmt"
 	"math/rand"
-	"time"
 
 	"github.com/velosypedno/jobshop/pkg/tree/core"
 	"github.com/velosypedno/jobshop/pkg/tree/simulator"
@@ -130,7 +129,6 @@ func (s *Strategy) Plan(problem *core.Problem) core.Solution {
 
 	s.logger.Info("Tabu Search finished",
 		zap.Any("final_best_cost", bestRes.Cost),
-		zap.Duration("elapsed", time.Since(problem.StartTime)),
 	)
 
 	return bestRes.Solution

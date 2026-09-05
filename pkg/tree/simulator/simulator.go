@@ -8,17 +8,17 @@ import (
 )
 
 type SimulationResult struct {
-	Cost         float64
-	Solution     core.Solution
-	MachineSlots core.MachineTimeSlots
+	Cost     float64
+	Solution core.Solution
 }
 
+// A FactorySimulator converts problem with tree-based jobs into a shcedule
+// using priory-based algorithm
 type FactorySimulator struct {
-	Ops          []*internalOp
-	machines     []*core.Machine
-	startTime    time.Time
-	rootOpIDs    map[core.JobID][]core.OperationID
-	originalJobs []*core.Job
+	// ops stores all flattened problem operations
+	// The index of this slice corresponds strictly to internalOp.ID
+	ops     []*internalOp
+	problem *core.Problem // to access machines, jobs and start time
 }
 
 type internalOp struct {
@@ -48,23 +48,23 @@ func (o internalOp) String() string {
 	)
 }
 
+// Be sure that problem will not be changed, so you do not need to do copy
 func NewFactorySimulator(problem *core.Problem) *FactorySimulator {
 	sim := &FactorySimulator{
-		Ops:          []*internalOp{},
-		machines:     problem.Machines,
-		startTime:    problem.StartTime,
-		rootOpIDs:    make(map[core.JobID][]core.OperationID),
-		originalJobs: problem.Jobs,
+		ops:     []*internalOp{},
+		problem: problem,
 	}
 	sim.flattenJobs(problem.Jobs)
 	return sim
 }
 
+// Use to identidy how long should be slice of weigths of operations for simulation
 func (s *FactorySimulator) TotalOperations() int {
-	return len(s.Ops)
+	return len(s.ops)
 }
 
 func (s *FactorySimulator) flattenJobs(jobs []*core.Job) {
+	// I have no idea why I needed so strange map
 	registry := make(map[core.JobID]map[core.OperationID]*internalOp)
 
 	globalIDCounter := core.OperationID(0)
@@ -85,7 +85,7 @@ func (s *FactorySimulator) flattenJobs(jobs []*core.Job) {
 				ChildrenIDs: make([]core.OperationID, 0, len(op.ChildOperations)),
 			}
 
-			s.Ops = append(s.Ops, internal)
+			s.ops = append(s.ops, internal)
 			registry[jobID][op.ID] = internal
 			globalIDCounter++
 
@@ -95,11 +95,6 @@ func (s *FactorySimulator) flattenJobs(jobs []*core.Job) {
 
 	for _, job := range jobs {
 		registerRecursive(job.ID, job.Operations)
-		for _, rootOp := range job.Operations {
-			if internal, ok := registry[job.ID][rootOp.ID]; ok {
-				s.rootOpIDs[job.ID] = append(s.rootOpIDs[job.ID], internal.ID)
-			}
-		}
 	}
 
 	for _, job := range jobs {
@@ -122,14 +117,19 @@ func (s *FactorySimulator) flattenJobs(jobs []*core.Job) {
 	}
 }
 
+// Simulate constructs a schedule using the provided priority weights for each operation
+// Algorithm chose ready operations with the highest priority (LOWER weight values represent HIGHER priority)
+// Then add new operaions to ready list if it is possible
+//
+// Expects len(weights) match with TotalOperations(). If len is not the same it will panic
 func (s *FactorySimulator) Simulate(weights []float64) *SimulationResult {
-	total := len(s.Ops)
+	total := len(s.ops)
 	if total == 0 {
 		return &SimulationResult{Solution: core.NewSolution()}
 	}
 
 	currentInDegrees := make([]int, total)
-	for i, op := range s.Ops {
+	for i, op := range s.ops {
 		currentInDegrees[i] = op.InDegree
 	}
 
@@ -141,18 +141,18 @@ func (s *FactorySimulator) Simulate(weights []float64) *SimulationResult {
 		}
 	}
 
-	sess := newSession(s.machines, s.startTime)
-	var maxFinishTime time.Time = s.startTime
+	sess := newSession(s.problem.Machines)
+	var maxFinishOffset time.Duration = 0
 
 	for len(readyList) > 0 {
 		bestPos := pickBestOperation(readyList, weights)
 		opIdx := readyList[bestPos]
-		op := s.Ops[opIdx]
+		op := s.ops[opIdx]
 
 		readyList[bestPos] = readyList[len(readyList)-1]
 		readyList = readyList[:len(readyList)-1]
 
-		readyTime := sess.GetReadyTime(op)
+		readyTime := sess.GetReadyOffset(op)
 
 		mID, period := sess.FindBestSlot(readyTime, op.BaseOp.Duration, op.BaseOp.MachineType)
 
@@ -160,8 +160,8 @@ func (s *FactorySimulator) Simulate(weights []float64) *SimulationResult {
 		sess.assignedMachines[op.ID] = mID
 		sess.OccupiedMap[mID] = append(sess.OccupiedMap[mID], period)
 
-		if period.End.After(maxFinishTime) {
-			maxFinishTime = period.End
+		if period.End() > maxFinishOffset {
+			maxFinishOffset = period.End()
 		}
 
 		if op.ParentID != -1 {
@@ -174,9 +174,8 @@ func (s *FactorySimulator) Simulate(weights []float64) *SimulationResult {
 	}
 	solution := s.assemble(sess)
 	return &SimulationResult{
-		Cost:         maxFinishTime.Sub(s.startTime).Seconds(),
-		MachineSlots: sess.OccupiedMap,
-		Solution:     solution,
+		Cost:     maxFinishOffset.Seconds(),
+		Solution: solution,
 	}
 }
 
@@ -193,7 +192,7 @@ func pickBestOperation(readyList []core.OperationID, weights []float64) int {
 func (s *FactorySimulator) assemble(sess *session) core.Solution {
 	solution := core.NewSolution()
 
-	for _, op := range s.Ops {
+	for _, op := range s.ops {
 		period, ok := sess.results[op.ID]
 		mID, okM := sess.assignedMachines[op.ID]
 
@@ -203,8 +202,7 @@ func (s *FactorySimulator) assemble(sess *session) core.Solution {
 
 		solution.OperationMap[op.BaseOp.ID] = core.OpSolution{
 			MachineID: mID,
-			Offset:    period.Start.Sub(sess.StartTime),
-			Duration:  period.Duration(),
+			Period:    period,
 		}
 	}
 

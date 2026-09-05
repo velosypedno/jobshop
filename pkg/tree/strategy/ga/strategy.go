@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math/rand"
 	"sort"
-	"time"
 
 	"go.uber.org/zap"
 
@@ -149,7 +148,6 @@ func (s *Strategy) Plan(problem *core.Problem) core.Solution {
 	s.logger.Info("Optimization completed",
 		zap.String("strategy_type", s.Type()),
 		zap.Any("final_makespan", best.result.Cost),
-		zap.Duration("duration_since_start", time.Since(problem.StartTime)),
 	)
 
 	return best.result.Solution

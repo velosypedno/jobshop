@@ -53,7 +53,7 @@ func (a *App) Run(startTime time.Time, orders []core.OrderEntry, customName stri
 	)
 
 	// Step 3
-	problem := a.ManufactoryTwin.NewProblem(orders, startTime)
+	problem := a.ManufactoryTwin.NewProblem(orders)
 
 	// Step 4
 	schedulingReports, err := a.Engine.Solve(problem)
@@ -76,7 +76,7 @@ func (a *App) Run(startTime time.Time, orders []core.OrderEntry, customName stri
 	defer outputFile.Close()
 
 	ganttCharts := report.NewGanttCharts(outputFile)
-	if err := ganttCharts.Report(problem, schedulingReports); err != nil {
+	if err := ganttCharts.Report(problem, startTime, schedulingReports); err != nil {
 		logger.Warn("Could not generate gantt charts", zap.Error(err))
 	}
 

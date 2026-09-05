@@ -1,11 +1,8 @@
 package core
 
-import "time"
-
 type Problem struct {
-	Jobs      []*Job
-	Machines  []*Machine
-	StartTime time.Time
+	Jobs     []*Job
+	Machines []*Machine
 }
 
 type ProblemContext struct {
