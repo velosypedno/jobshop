@@ -152,16 +152,10 @@ func (s *FactorySimulator) Simulate(weights []float64) *SimulationResult {
 		readyList[bestPos] = readyList[len(readyList)-1]
 		readyList = readyList[:len(readyList)-1]
 
-		readyTime := sess.GetReadyOffset(op)
+		opSolution := sess.FindOpSulotion(op)
 
-		mID, period := sess.FindBestSlot(readyTime, op.BaseOp.Duration, op.BaseOp.MachineType)
-
-		sess.results[op.ID] = period
-		sess.assignedMachines[op.ID] = mID
-		sess.OccupiedMap[mID] = append(sess.OccupiedMap[mID], period)
-
-		if period.End() > maxFinishOffset {
-			maxFinishOffset = period.End()
+		if opSolution.Period.End() > maxFinishOffset {
+			maxFinishOffset = opSolution.Period.End()
 		}
 
 		if op.ParentID != -1 {
@@ -193,17 +187,13 @@ func (s *FactorySimulator) assemble(sess *session) core.Solution {
 	solution := core.NewSolution()
 
 	for _, op := range s.ops {
-		period, ok := sess.results[op.ID]
-		mID, okM := sess.assignedMachines[op.ID]
+		opSolution, ok := sess.opSolutions[op.ID]
 
-		if !ok || !okM {
-			continue
+		if !ok {
+			panic(fmt.Sprintf("No solution found in session for operation with ID: %v", op.ID))
 		}
 
-		solution.OperationMap[op.BaseOp.ID] = core.OpSolution{
-			MachineID: mID,
-			Period:    period,
-		}
+		solution.OperationMap[op.BaseOp.ID] = opSolution
 	}
 
 	return solution

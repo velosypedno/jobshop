@@ -11,8 +11,7 @@ type session struct {
 	OccupiedMap      core.MachineTimeSlots
 	MachineTypeIndex core.MachineTypeIndex
 
-	results          map[core.OperationID]core.Period
-	assignedMachines map[core.OperationID]core.MachineID
+	opSolutions map[core.OperationID]core.OpSolution
 }
 
 func newSession(machines []*core.Machine) *session {
@@ -29,24 +28,23 @@ func newSession(machines []*core.Machine) *session {
 	return &session{
 		OccupiedMap:      timeSlotsMap,
 		MachineTypeIndex: machineTypeIndex,
-		results:          make(map[core.OperationID]core.Period, 0),
-		assignedMachines: make(map[core.OperationID]core.MachineID),
+
+		opSolutions: make(map[core.OperationID]core.OpSolution),
 	}
 }
 
-func (s *session) FindBestSlot(
-	startOffset time.Duration,
-	duration time.Duration,
-	machineType core.MachineType,
-) (core.MachineID, core.Period) {
-	targetMachineIDs := s.MachineTypeIndex[machineType]
+func (s *session) FindOpSulotion(
+	op *internalOp,
+) core.OpSolution {
+	startOffset := s.getReadyOffset(op)
+	targetMachineIDs := s.MachineTypeIndex[op.BaseOp.MachineType]
 
 	var bestMachineID core.MachineID
 	var bestPeriod core.Period
 	firstFound := false
 
 	for _, mID := range targetMachineIDs {
-		currentPeriod := s.findEarliestGap(startOffset, duration, s.OccupiedMap[mID])
+		currentPeriod := s.findEarliestGap(startOffset, op.BaseOp.Duration, s.OccupiedMap[mID])
 
 		if !firstFound || currentPeriod.End() < bestPeriod.End() {
 			bestPeriod = currentPeriod
@@ -55,7 +53,15 @@ func (s *session) FindBestSlot(
 		}
 	}
 
-	return bestMachineID, bestPeriod
+	opSolution := core.OpSolution{
+		Period:    bestPeriod,
+		MachineID: bestMachineID,
+	}
+
+	s.opSolutions[op.ID] = opSolution
+	s.OccupiedMap[bestMachineID] = append(s.OccupiedMap[bestMachineID], bestPeriod)
+
+	return opSolution
 }
 
 func (s *session) findEarliestGap(startOffset time.Duration, duration time.Duration, occupied []core.Period) core.Period {
@@ -88,13 +94,13 @@ func (s *session) findEarliestGap(startOffset time.Duration, duration time.Durat
 	}
 }
 
-func (s *session) GetReadyOffset(op *internalOp) time.Duration {
+func (s *session) getReadyOffset(op *internalOp) time.Duration {
 	var readyOffset time.Duration = 0
 
 	for _, childGlobalID := range op.ChildrenIDs {
-		if childPeriod, ok := s.results[childGlobalID]; ok {
-			if childPeriod.End() > readyOffset {
-				readyOffset = childPeriod.End()
+		if childOpSoluiton, ok := s.opSolutions[childGlobalID]; ok {
+			if childOpSoluiton.Period.End() > readyOffset {
+				readyOffset = childOpSoluiton.Period.End()
 			}
 		}
 	}
