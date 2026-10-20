@@ -142,16 +142,16 @@ func (s *FactorySimulator) Simulate(weights []float64) *SimulationResult {
 	var finishOffset time.Duration = 0
 
 	for len(readyList) > 0 {
-		bestPos := 0
+		mostPrioritized := 0
 		for i := 1; i < len(readyList); i++ {
-			if weights[readyList[i]] < weights[readyList[bestPos]] {
-				bestPos = i
+			if weights[readyList[i]] < weights[readyList[mostPrioritized]] {
+				mostPrioritized = i
 			}
 		}
-		opIdx := readyList[bestPos]
+		opIdx := readyList[mostPrioritized]
 		op := s.ops[opIdx]
 
-		readyList[bestPos] = readyList[len(readyList)-1]
+		readyList[mostPrioritized] = readyList[len(readyList)-1]
 		readyList = readyList[:len(readyList)-1]
 
 		opSolution := sess.FindOpSulotion(op)
