@@ -1,68 +1,146 @@
 package core
 
 import (
+	"fmt"
 	"time"
 )
 
 type (
-	MachineType         uint
-	MachineID           int
-	OperationID         int
-	JobID               int
-	OperationTemplateID int
+	MachineType  uint
+	MachineID    int
+	OpID         int
+	JobID        int
+	OpTemplateID int
 )
 
-type OperationTemplate struct {
-	ID OperationTemplateID
+type OpTemplate struct {
+	ID OpTemplateID
 
 	Name           string
 	MachineType    MachineType
 	ProcessingTime time.Duration
 }
 
-type OperationTemplateDependencyEdge struct {
-	From OperationTemplateID
-	To   OperationTemplateID
+type OpTemplateDependencyEdge struct {
+	From OpTemplateID
+	To   OpTemplateID
 }
 
 type JobGraphTemplate struct {
-	Name       string
-	Operations map[OperationTemplateID]OperationTemplate
-	Edges      []OperationTemplateDependencyEdge
+	Name  string
+	Ops   map[OpTemplateID]OpTemplate
+	Edges []OpTemplateDependencyEdge
+}
+
+func InitJobtemplate(name string) JobGraphTemplate {
+	return JobGraphTemplate{
+		Name:  name,
+		Ops:   make(map[OpTemplateID]OpTemplate),
+		Edges: []OpTemplateDependencyEdge{},
+	}
+}
+
+func (j *JobGraphTemplate) AddOpTemplate(opTemplate OpTemplate) {
+	j.Ops[opTemplate.ID] = opTemplate
+}
+
+func (j *JobGraphTemplate) AddEdge(from, to OpTemplateID) {
+	j.Edges = append(j.Edges, OpTemplateDependencyEdge{from, to})
+}
+
+func ValidateTemplate(jobGraphTemplate JobGraphTemplate) error {
+	// cheсk all IDs exist
+	for _, edge := range jobGraphTemplate.Edges {
+		if _, ok := jobGraphTemplate.Ops[edge.From]; !ok {
+			return fmt.Errorf("template with id %v does not exist", edge.From)
+		}
+		if _, ok := jobGraphTemplate.Ops[edge.To]; !ok {
+			return fmt.Errorf("template with id %v does not exist", edge.From)
+		}
+	}
+
+	// check cycle exists
+	inDegreeMap := make(map[OpTemplateID]int, len(jobGraphTemplate.Ops))
+	for _, opTemplate := range jobGraphTemplate.Ops {
+		inDegreeMap[opTemplate.ID] = 0
+	}
+	for _, edge := range jobGraphTemplate.Edges {
+		inDegreeMap[edge.To]++
+	}
+
+	successorsMap := make(map[OpTemplateID][]OpTemplateID)
+	for _, edge := range jobGraphTemplate.Edges {
+		successorsMap[edge.From] = append(successorsMap[edge.From], edge.To)
+	}
+
+	sources := []OpTemplateID{}
+	for opTemplateID, inDegreeValue := range inDegreeMap {
+		if inDegreeValue == 0 {
+			sources = append(sources, opTemplateID)
+		}
+	}
+	unvisited := len(inDegreeMap) - len(sources)
+	for {
+		if len(sources) == 0 {
+			break
+		}
+
+		source := sources[0]
+		sources = sources[1:]
+		successorsTemplatesIDs := successorsMap[source]
+		for _, successorTemplateID := range successorsTemplatesIDs {
+			inDegreeMap[successorTemplateID]--
+			if inDegreeMap[successorTemplateID] == 0 {
+				unvisited--
+				sources = append(sources, successorTemplateID)
+			}
+		}
+	}
+
+	if unvisited != 0 {
+		return fmt.Errorf("cycle presents in topology")
+	}
+
+	return nil
 }
 
 type Operation struct {
-	ID OperationID
+	ID OpID
 
 	Name           string
 	ProcessingTime time.Duration
 	MachineType    MachineType
 
-	Predecessors []OperationID
-	Successors   []OperationID
+	Predecessors []OpID
+	Successors   []OpID
 }
 
 type Job struct {
 	ID JobID
 
-	Name       string
-	Operations map[OperationID]*Operation
+	Name string
+	Ops  map[OpID]*Operation
 }
 
-func CreateJob(id JobID, template JobGraphTemplate, lastOperationID *OperationID) *Job {
-	job := &Job{
-		ID:         id,
-		Name:       template.Name,
-		Operations: make(map[OperationID]*Operation, len(template.Operations)),
+func CreateJob(id JobID, template JobGraphTemplate, lastOperationID *OpID) (*Job, error) {
+	err := ValidateTemplate(template)
+	if err != nil {
+		return nil, fmt.Errorf("create job: %w", err)
 	}
 
-	operationTempalateIDToActualOperationID := make(map[OperationTemplateID]OperationID, len(template.Operations))
+	job := &Job{
+		ID:   id,
+		Name: template.Name,
+		Ops:  make(map[OpID]*Operation, len(template.Ops)),
+	}
 
-	for _, operationTemplate := range template.Operations {
+	opTempalateIDToActualOpID := make(map[OpTemplateID]OpID, len(template.Ops))
+
+	for _, operationTemplate := range template.Ops {
 		*lastOperationID++
 
-		operationTempalateIDToActualOperationID[operationTemplate.ID] = *lastOperationID
-		job.Operations[*lastOperationID] = &Operation{
+		opTempalateIDToActualOpID[operationTemplate.ID] = *lastOperationID
+		job.Ops[*lastOperationID] = &Operation{
 			ID:             *lastOperationID,
 			Name:           operationTemplate.Name,
 			ProcessingTime: operationTemplate.ProcessingTime,
@@ -71,22 +149,22 @@ func CreateJob(id JobID, template JobGraphTemplate, lastOperationID *OperationID
 	}
 
 	// get toplogy map
-	opTemlpateIdsEdgeMap := make(map[OperationTemplateID][]OperationTemplateID)
+	opTemlpateIDsEdgeMap := make(map[OpTemplateID][]OpTemplateID)
 	for _, edge := range template.Edges {
-		opTemlpateIdsEdgeMap[edge.From] = append(opTemlpateIdsEdgeMap[edge.From], edge.To)
+		opTemlpateIDsEdgeMap[edge.From] = append(opTemlpateIDsEdgeMap[edge.From], edge.To)
 	}
 
 	// enrcih with actual successors and predecessors ids
-	for predecessorTemplateID, successorsTemplatesIDs := range opTemlpateIdsEdgeMap {
-		predecessorOperationId := operationTempalateIDToActualOperationID[predecessorTemplateID]
-		predecessorOperation := job.Operations[predecessorOperationId]
+	for predecessorTemplateID, successorsTemplatesIDs := range opTemlpateIDsEdgeMap {
+		predecessorOpId := opTempalateIDToActualOpID[predecessorTemplateID]
+		predecessorOp := job.Ops[predecessorOpId]
 		for _, successorTemplateID := range successorsTemplatesIDs {
-			successorOperationId := operationTempalateIDToActualOperationID[successorTemplateID]
-			predecessorOperation.Successors = append(predecessorOperation.Successors, successorOperationId)
-			successorOperation := job.Operations[successorOperationId]
-			successorOperation.Predecessors = append(successorOperation.Predecessors, predecessorOperationId)
+			successorOpId := opTempalateIDToActualOpID[successorTemplateID]
+			predecessorOp.Successors = append(predecessorOp.Successors, successorOpId)
+			successorOp := job.Ops[successorOpId]
+			successorOp.Predecessors = append(successorOp.Predecessors, predecessorOpId)
 		}
 	}
 
-	return job
+	return job, nil
 }
