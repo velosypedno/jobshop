@@ -11,8 +11,8 @@ type Problem struct {
 }
 
 type Manufactory struct {
-	Machines  []*Machine
-	Templates map[JobTemplateID]JobGraphTemplate
+	machines  []*Machine
+	templates map[JobTemplateID]JobGraphTemplate
 }
 
 // No checks or constraints for machineConfigs are needed.
@@ -27,6 +27,7 @@ func NewManufactory(machineConfigs []MachineConfigEntry, jobTemplates []JobGraph
 
 	machineTypeSet := make(map[MachineType]struct{}, len(machineConfigs))
 
+	// create machines and set of available MachineTypes
 	var machineCounter int
 	for _, mConf := range machineConfigs {
 		mType := mConf.Type
@@ -35,10 +36,11 @@ func NewManufactory(machineConfigs []MachineConfigEntry, jobTemplates []JobGraph
 		for i := 0; i < mConf.Count; i++ {
 			machineCounter++
 			m := NewMachine(MachineID(machineCounter), mType, mConf.Name)
-			f.Machines = append(f.Machines, &m)
+			f.machines = append(f.machines, &m)
 		}
 	}
 
+	// check for missing machine type
 	for _, jobTemplate := range jobTemplates {
 		for _, opTemplate := range jobTemplate.Ops {
 			if _, ok := machineTypeSet[opTemplate.MachineType]; !ok {
@@ -47,13 +49,14 @@ func NewManufactory(machineConfigs []MachineConfigEntry, jobTemplates []JobGraph
 		}
 	}
 
-	f.Templates = make(map[JobTemplateID]JobGraphTemplate)
+	// check for right topology of operations in template
+	f.templates = make(map[JobTemplateID]JobGraphTemplate)
 	for _, jobTemplate := range jobTemplates {
 		err := validateOperationsTopology(jobTemplate)
 		if err != nil {
 			return nil, fmt.Errorf("manufactory initialization: %w", err)
 		}
-		f.Templates[jobTemplate.ID] = jobTemplate
+		f.templates[jobTemplate.ID] = jobTemplate
 	}
 
 	return f, nil
@@ -66,7 +69,7 @@ type OrderEntry struct {
 
 func (f *Manufactory) NewProblem(orders []OrderEntry) (*Problem, error) {
 	for _, order := range orders {
-		if _, ok := f.Templates[order.JobTemplateID]; !ok {
+		if _, ok := f.templates[order.JobTemplateID]; !ok {
 			return nil, &ErrUnknownJobTemplateDetail{ID: order.JobTemplateID}
 		}
 	}
@@ -75,7 +78,7 @@ func (f *Manufactory) NewProblem(orders []OrderEntry) (*Problem, error) {
 
 	problem := Problem{
 		Jobs:     jobs,
-		Machines: f.Machines,
+		Machines: f.machines,
 	}
 	return &problem, nil
 }
@@ -86,7 +89,7 @@ func (f *Manufactory) createJobsFromOrders(orders []OrderEntry) []*Job {
 
 	operationCounter := new(OpID)
 	for _, order := range orders {
-		template := f.Templates[order.JobTemplateID]
+		template := f.templates[order.JobTemplateID]
 
 		for i := 0; i < order.Amount; i++ {
 			jobIDCounter++
