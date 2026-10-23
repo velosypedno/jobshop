@@ -1,0 +1,29 @@
+{
+  "machines": [
+    { "type_id": 10, "type_name": "LaserCutter", "count": 2 },
+    { "type_id": 20, "type_name": "BendingMachine", "count": 1 },
+    { "type_id": 30, "type_name": "HeatTreatment", "count": 1 },
+    { "type_id": 40, "type_name": "QualityControl", "count": 2 }
+  ],
+  "job_templates": [
+    {
+      "id": 301,
+      "name": "Complex Graph Bracket",
+      "operations": [
+        { "id": 1, "name": "Cut Sheet Plate", "machine_type": 10, "processing_time": "12m" },
+        { "id": 2, "name": "Form Flange A", "machine_type": 20, "processing_time": "18m" },
+        { "id": 3, "name": "Form Flange B", "machine_type": 20, "processing_time": "18m" },
+        { "id": 4, "name": "Harden Joints", "machine_type": 30, "processing_time": "60m" },
+        { "id": 5, "name": "Coordinate Metrology", "machine_type": 40, "processing_time": "30m" }
+      ],
+      "edges": [
+        { "from_op_id": 1, "to_op_id": 2 },
+        { "from_op_id": 1, "to_op_id": 3 },
+        { "from_op_id": 2, "to_op_id": 4 },
+        { "from_op_id": 3, "to_op_id": 4 },
+        { "from_op_id": 4, "to_op_id": 5 },
+        { "from_op_id": 2, "to_op_id": 5 }
+      ]
+    }
+  ]
+}

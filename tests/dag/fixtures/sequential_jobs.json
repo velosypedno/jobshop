@@ -1,0 +1,22 @@
+{
+  "machines": [
+    { "type_id": 1, "type_name": "Milling", "count": 2 },
+    { "type_id": 2, "type_name": "Lathe", "count": 1 },
+    { "type_id": 3, "type_name": "Polisher", "count": 1 }
+  ],
+  "job_templates": [
+    {
+      "id": 101,
+      "name": "Sequential Shaft Processing",
+      "operations": [
+        { "id": 1, "name": "Rough Turn", "machine_type": 2, "processing_time": "30m" },
+        { "id": 2, "name": "Keyway Milling", "machine_type": 1, "processing_time": "15m" },
+        { "id": 3, "name": "Surface Polishing", "machine_type": 3, "processing_time": "20m" }
+      ],
+      "edges": [
+        { "from_op_id": 1, "to_op_id": 2 },
+        { "from_op_id": 2, "to_op_id": 3 }
+      ]
+    }
+  ]
+}

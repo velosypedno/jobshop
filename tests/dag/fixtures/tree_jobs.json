@@ -1,0 +1,26 @@
+{
+  "machines": [
+    { "type_id": 1, "type_name": "Stamping", "count": 3 },
+    { "type_id": 2, "type_name": "Welding", "count": 2 },
+    { "type_id": 3, "type_name": "Assembly", "count": 1 }
+  ],
+  "job_templates": [
+    {
+      "id": 201,
+      "name": "Tree Assembly Gearbox",
+      "operations": [
+        { "id": 1, "name": "Stamp Gear A", "machine_type": 1, "processing_time": "10m" },
+        { "id": 2, "name": "Stamp Gear B", "machine_type": 1, "processing_time": "10m" },
+        { "id": 3, "name": "Weld Sub-Assembly", "machine_type": 2, "processing_time": "25m" },
+        { "id": 4, "name": "Stamp Casing", "machine_type": 1, "processing_time": "15m" },
+        { "id": 5, "name": "Final Assembly", "machine_type": 3, "processing_time": "45m" }
+      ],
+      "edges": [
+        { "from_op_id": 1, "to_op_id": 3 },
+        { "from_op_id": 2, "to_op_id": 3 },
+        { "from_op_id": 3, "to_op_id": 5 },
+        { "from_op_id": 4, "to_op_id": 5 }
+      ]
+    }
+  ]
+}
