@@ -1,0 +1,112 @@
+{
+  "machines": [
+    { "type_id": 0, "type_name": "Assembler", "count": 2 },
+    { "type_id": 1, "type_name": "Smeltery",  "count": 1 },
+    { "type_id": 2, "type_name": "Extruder",  "count": 1 },
+    { "type_id": 3, "type_name": "Sawmill",   "count": 1 }
+  ],
+  "job_templates": [
+    {
+      "id": 7,
+      "name": "Robot Vacuum",
+      "operations": [
+        { "id": 1, "name": "Sensor Sync", "machine_type": 0, "processing_time": "50m" },
+        { "id": 2, "name": "Brush Motor", "machine_type": 2, "processing_time": "40m" },
+        { "id": 3, "name": "Dust Bin",    "machine_type": 3, "processing_time": "20m" }
+      ],
+      "edges": [
+        { "from_op_id": 2, "to_op_id": 1 },
+        { "from_op_id": 3, "to_op_id": 1 }
+      ]
+    },
+    {
+      "id": 8,
+      "name": "Coffee Machine",
+      "operations": [
+        { "id": 1, "name": "Hydraulic Setup", "machine_type": 0, "processing_time": "70m" },
+        { "id": 2, "name": "Water Tank",       "machine_type": 2, "processing_time": "35m" },
+        { "id": 3, "name": "Boiler Unit",      "machine_type": 1, "processing_time": "45m" }
+      ],
+      "edges": [
+        { "from_op_id": 2, "to_op_id": 1 },
+        { "from_op_id": 3, "to_op_id": 1 }
+      ]
+    },
+    {
+      "id": 9,
+      "name": "Drone Frame",
+      "operations": [
+        { "id": 1, "name": "Frame Rigidity Test", "machine_type": 0, "processing_time": "30m" },
+        { "id": 2, "name": "Arm Carbon Cut",      "machine_type": 3, "processing_time": "25m" },
+        { "id": 3, "name": "Central Hub",          "machine_type": 1, "processing_time": "20m" }
+      ],
+      "edges": [
+        { "from_op_id": 2, "to_op_id": 1 },
+        { "from_op_id": 3, "to_op_id": 1 }
+      ]
+    },
+    {
+      "id": 14,
+      "name": "Medical Scanner Part",
+      "operations": [
+        { "id": 1, "name": "Radiation Shielding", "machine_type": 1, "processing_time": "180m" },
+        { "id": 2, "name": "Lead Infusion",        "machine_type": 1, "processing_time": "60m"  },
+        { "id": 3, "name": "Precise Frame",        "machine_type": 3, "processing_time": "90m"  }
+      ],
+      "edges": [
+        { "from_op_id": 2, "to_op_id": 1 },
+        { "from_op_id": 3, "to_op_id": 1 }
+      ]
+    },
+    {
+      "id": 15,
+      "name": "Smart Watch",
+      "operations": [
+        { "id": 1, "name": "Micro-Integration", "machine_type": 0, "processing_time": "25m" },
+        { "id": 2, "name": "Glass Polish",       "machine_type": 3, "processing_time": "15m" },
+        { "id": 3, "name": "Wristband Mold",     "machine_type": 2, "processing_time": "10m" },
+        { "id": 4, "name": "Tiny Case Cast",     "machine_type": 1, "processing_time": "10m" }
+      ],
+      "edges": [
+        { "from_op_id": 2, "to_op_id": 1 },
+        { "from_op_id": 3, "to_op_id": 1 },
+        { "from_op_id": 4, "to_op_id": 1 }
+      ]
+    },
+    {
+      "id": 16,
+      "name": "Electric Mountain Bike",
+      "operations": [
+        { "id": 1,  "name": "Final Quality Control & Packing",  "machine_type": 0, "processing_time": "45m"  },
+        { "id": 2,  "name": "Full Bike Assembly",                "machine_type": 0, "processing_time": "90m"  },
+        { "id": 3,  "name": "Drivetrain & Motor Integration",    "machine_type": 0, "processing_time": "60m"  },
+        { "id": 4,  "name": "Motor Mid-Drive Unit",              "machine_type": 0, "processing_time": "40m"  },
+        { "id": 5,  "name": "Casing Assembly",                   "machine_type": 2, "processing_time": "30m"  },
+        { "id": 6,  "name": "Alloy Smelting",                    "machine_type": 1, "processing_time": "25m"  },
+        { "id": 7,  "name": "Raw Ore Processing",                "machine_type": 1, "processing_time": "20m"  },
+        { "id": 8,  "name": "Internal Gear Cutting",             "machine_type": 3, "processing_time": "35m"  },
+        { "id": 9,  "name": "Advanced Frame Set",                "machine_type": 0, "processing_time": "75m"  },
+        { "id": 10, "name": "Hydraulic Suspension Fork",         "machine_type": 2, "processing_time": "50m"  },
+        { "id": 11, "name": "Piston Polishing",                  "machine_type": 3, "processing_time": "20m"  },
+        { "id": 12, "name": "Steel Casting",                     "machine_type": 1, "processing_time": "30m"  },
+        { "id": 13, "name": "Iron Purification",                 "machine_type": 1, "processing_time": "15m"  },
+        { "id": 14, "name": "Carbon-Fiber-Look Reinforcement",   "machine_type": 3, "processing_time": "40m"  }
+      ],
+      "edges": [
+        { "from_op_id": 7,  "to_op_id": 6  },
+        { "from_op_id": 6,  "to_op_id": 5  },
+        { "from_op_id": 5,  "to_op_id": 4  },
+        { "from_op_id": 8,  "to_op_id": 4  },
+        { "from_op_id": 4,  "to_op_id": 3  },
+        { "from_op_id": 13, "to_op_id": 12 },
+        { "from_op_id": 12, "to_op_id": 11 },
+        { "from_op_id": 11, "to_op_id": 10 },
+        { "from_op_id": 10, "to_op_id": 9  },
+        { "from_op_id": 14, "to_op_id": 9  },
+        { "from_op_id": 3,  "to_op_id": 2  },
+        { "from_op_id": 9,  "to_op_id": 2  },
+        { "from_op_id": 2,  "to_op_id": 1  }
+      ]
+    }
+  ]
+}

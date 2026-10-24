@@ -1,0 +1,10 @@
+{
+    "orders": [
+        { "job_template_id": 7, "amount": 1 },
+        { "job_template_id": 8, "amount": 1 },
+        { "job_template_id": 9, "amount": 1 },
+        { "job_template_id": 14, "amount": 1 },
+        { "job_template_id": 15, "amount": 1 },
+        { "job_template_id": 16, "amount": 1 }
+    ]
+}

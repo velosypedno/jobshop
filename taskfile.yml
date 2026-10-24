@@ -1,10 +1,11 @@
 version: '3'
 
-vars:
-  DEFAULT_DIR: default
-  DEFAULT_CONFIG: "{{.DEFAULT_DIR}}/config.json"
-  DEFAULT_ORDER: "{{.DEFAULT_DIR}}/order.json"
-  BINARY_NAME: scheduler
+includes:
+  tree:
+    taskfile: taskfile-tree.yml
+  dag:
+    taskfile: taskfile-dag.yml
+
 
 tasks:
   default:
@@ -12,34 +13,6 @@ tasks:
     cmds:
       - task --list-all
 
-  setup:
-    desc: Copy example configurations and orders to the default directory
-    cmds:
-      - mkdir -p {{.DEFAULT_DIR}}
-      - cp example/config.json {{.DEFAULT_CONFIG}}
-      - cp example/order.json {{.DEFAULT_ORDER}}
-    status:
-      - test -f {{.DEFAULT_CONFIG}}
-      - test -f {{.DEFAULT_ORDER}}
-
-  build:
-    desc: Build the binary
-    cmds:
-      - go build -o {{.BINARY_NAME}} cmd/scheduler/main.go
-
-  run:
-    desc: Run the application with flags
-    summary: |
-      Runs the program using named flags.
-      Example: task run -- -n my_test_plan
-      Example: task run -- -c custom_config.json -o custom_orders.json
-    cmds:
-      - go run cmd/scheduler/main.go --config {{.CONFIG | default .DEFAULT_CONFIG}} --orders {{.ORDER | default .DEFAULT_ORDER}} {{.CLI_ARGS}}
-
-  help:
-    desc: Show CLI help
-    cmds:
-      - go run cmd/scheduler/main.go --help
   tidy:
     desc: Tidy go modules
     cmds:
@@ -56,7 +29,7 @@ tasks:
       - go mod download
 
   lint:
-    desc: Run local linter config 
+    desc: Run local linter config
     cmds:
       - golangci-lint run
 

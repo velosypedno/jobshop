@@ -1,0 +1,51 @@
+package report
+
+import (
+	"fmt"
+	"io"
+	"strings"
+	"text/tabwriter"
+
+	"github.com/velosypedno/jobshop/internal/dag/engine"
+)
+
+type SimpleTableReporter struct {
+	writer io.Writer
+}
+
+func NewSimpleTable(w io.Writer) *SimpleTableReporter {
+	return &SimpleTableReporter{writer: w}
+}
+
+func (f *SimpleTableReporter) format(results []engine.Report) (string, error) {
+	var buf strings.Builder
+	w := tabwriter.NewWriter(&buf, 0, 0, 3, ' ', tabwriter.TabIndent)
+
+	fmt.Fprintln(w, "Strategy\tType\tMakeSpan\tUtil %\tSched Time")
+	fmt.Fprintln(w, "--------\t----\t--------\t------\t----------")
+
+	for _, res := range results {
+		_, err := fmt.Fprintf(w, "%s\t%s\t%v\t%.2f%%\t%v\n",
+			res.StrategyMetrics.StrategyName,
+			res.StrategyMetrics.StrategyType,
+			res.SolutionMetrics.MakeSpan,
+			res.SolutionMetrics.UtilizationLevel*100,
+			res.StrategyMetrics.SchedulingTime,
+		)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	w.Flush()
+	return buf.String(), nil
+}
+
+func (r *SimpleTableReporter) Report(results []engine.Report) error {
+	content, err := r.format(results)
+	if err != nil {
+		return err
+	}
+	_, err = fmt.Fprint(r.writer, content)
+	return err
+}

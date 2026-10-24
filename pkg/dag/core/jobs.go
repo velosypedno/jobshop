@@ -42,7 +42,6 @@ func createJob(id JobID, template JobGraphTemplate, lastOperationID *OpID) *Job 
 	opTempalateIDToActualOpID := make(map[OpTemplateID]OpID, len(template.Ops))
 
 	for _, operationTemplate := range template.Ops {
-		*lastOperationID++
 
 		opTempalateIDToActualOpID[operationTemplate.ID] = *lastOperationID
 		job.Ops[*lastOperationID] = &Operation{
@@ -51,6 +50,7 @@ func createJob(id JobID, template JobGraphTemplate, lastOperationID *OpID) *Job 
 			ProcessingTime: operationTemplate.ProcessingTime,
 			MachineType:    operationTemplate.MachineType,
 		}
+		*lastOperationID++
 	}
 
 	// get toplogy map

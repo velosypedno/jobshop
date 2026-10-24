@@ -57,6 +57,7 @@ func NewManufactory(machineConfigs []MachineConfigEntry, jobTemplates []JobGraph
 			return nil, fmt.Errorf("manufactory initialization: %w", err)
 		}
 		f.templates[jobTemplate.ID] = jobTemplate
+		fmt.Println(jobTemplate.ID)
 	}
 
 	return f, nil
