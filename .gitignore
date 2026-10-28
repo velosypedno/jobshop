@@ -4,3 +4,4 @@ default/
 /scheduler
 *.log
 default-dag
+.env

@@ -1,0 +1,59 @@
+x-db-env: &db-env
+  DB_USER: ${DB_USER}
+  DB_PASSWORD: ${DB_PASSWORD}
+  DB_NAME: ${DB_NAME}
+  DB_HOST: ${DB_HOST}
+  DB_PORT: ${DB_PORT}
+  DB_DRIVER: ${DB_DRIVER}
+
+x-backend-env: &backend-env
+  API_PORT: ${API_PORT}
+
+services:
+  postgres:
+    image: postgres:17.5
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      timeout: 2s
+      retries: 4
+    restart: unless-stopped
+
+  migrator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      <<: *db-env
+    volumes:
+      - ./db/migrations:/app/db/migrations:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    entrypoint: ["task", "db:migrate:up"]
+    restart: "no"
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      <<: [*db-env, *backend-env]
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
+    entrypoint: ["/app/bin/backend"]
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
