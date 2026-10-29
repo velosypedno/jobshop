@@ -1,0 +1,52 @@
+.form-card {
+  width: 100%;
+  max-width: 600px;
+  background: #ffffff;
+  border: 1px solid #dadce0;
+  border-radius: 8px;
+  border-top: 10px solid #673ab7;
+  padding: 24px;
+}
+
+.form-title {
+  margin: 0 0 6px;
+  font-size: 26px;
+  font-weight: 400;
+  color: #202124;
+}
+
+.form-desc {
+  margin: 0 0 24px;
+  font-size: 13px;
+  color: #5f6368;
+}
+
+.ping-btn {
+  background-color: #673ab7;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.ping-btn:hover:not(:disabled) {
+  background-color: #5e35b1;
+}
+
+.ping-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.form-result {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #e0e0e0;
+  font-size: 13px;
+  font-family: monospace;
+  color: #3c4043;
+  word-break: break-all;
+}

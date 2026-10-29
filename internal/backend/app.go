@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/kelseyhightower/envconfig"
 	_ "github.com/lib/pq"
@@ -48,9 +49,19 @@ type SrvConfig struct {
 	Port string `envconfig:"API_PORT" required:"true"`
 }
 
+type CORSConfig struct {
+	AllowOrigins     []string `envconfig:"CORS_ALLOW_ORIGINS" required:"true"`
+	AllowMethods     []string `envconfig:"CORS_ALLOW_METHODS" required:"true"`
+	AllowHeaders     []string `envconfig:"CORS_ALLOW_HEADERS" required:"true"`
+	ExposeHeaders    []string `envconfig:"CORS_EXPOSE_HEADERS" required:"true"`
+	AllowCredentials bool     `envconfig:"CORS_ALLOW_CREDENTIALS" required:"true"`
+	MaxAge           int      `envconfig:"CORS_MAX_AGE" required:"true"`
+}
+
 type Config struct {
-	DB  DBConfig
-	Srv SrvConfig
+	DB   DBConfig
+	Srv  SrvConfig
+	CORS CORSConfig
 }
 
 func Load() (*Config, error) {
@@ -151,6 +162,14 @@ func (a *App) shutdown(timeoutCtx context.Context) error {
 
 func (a *App) setupRouter() *gin.Engine {
 	router := gin.Default()
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     a.cfg.CORS.AllowOrigins,
+		AllowMethods:     a.cfg.CORS.AllowMethods,
+		AllowHeaders:     a.cfg.CORS.AllowHeaders,
+		ExposeHeaders:    a.cfg.CORS.ExposeHeaders,
+		AllowCredentials: a.cfg.CORS.AllowCredentials,
+		MaxAge:           time.Duration(a.cfg.CORS.MaxAge) * time.Second,
+	}))
 	api := router.Group("/api")
 	{
 		api.GET("/ping", func(c *gin.Context) {
