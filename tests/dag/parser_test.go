@@ -17,7 +17,9 @@ func TestParseFactoryConfig(main *testing.T) {
 		fixturePath := filepath.Join("fixtures", "sequential_jobs.json")
 
 		// Act
-		machines, templates, err := parser.ParseFactoryConfig(fixturePath)
+		factoryConfig, err := parser.ParseFactoryConfig(fixturePath)
+		machines := factoryConfig.MachineConfigs
+		templates := factoryConfig.JobTemplates
 
 		// Assert
 		require.NoError(t, err)
@@ -71,7 +73,9 @@ func TestParseFactoryConfig(main *testing.T) {
 		fixturePath := filepath.Join("fixtures", "tree_jobs.json")
 
 		// Act
-		machines, templates, err := parser.ParseFactoryConfig(fixturePath)
+		factoryConfig, err := parser.ParseFactoryConfig(fixturePath)
+		machines := factoryConfig.MachineConfigs
+		templates := factoryConfig.JobTemplates
 
 		// Assert
 		require.NoError(t, err)
@@ -141,7 +145,9 @@ func TestParseFactoryConfig(main *testing.T) {
 		fixturePath := filepath.Join("fixtures", "graph_jobs.json")
 
 		// Act
-		machines, templates, err := parser.ParseFactoryConfig(fixturePath)
+		factoryConfig, err := parser.ParseFactoryConfig(fixturePath)
+		machines := factoryConfig.MachineConfigs
+		templates := factoryConfig.JobTemplates
 
 		// Assert
 		require.NoError(t, err)

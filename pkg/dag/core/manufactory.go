@@ -22,14 +22,14 @@ type Manufactory struct {
 // 2. So allowed entries with the same MachineType, but different names.
 //
 // 3. Even entirely duplicated MachineConfigEntry are allowed, they will not ruin invariants, and will not cause errors
-func NewManufactory(machineConfigs []MachineConfigEntry, jobTemplates []JobGraphTemplate) (*Manufactory, error) {
+func NewManufactory(factoryConfig FactoryConfig) (*Manufactory, error) {
 	f := &Manufactory{}
 
-	machineTypeSet := make(map[MachineType]struct{}, len(machineConfigs))
+	machineTypeSet := make(map[MachineType]struct{}, len(factoryConfig.MachineConfigs))
 
 	// create machines and set of available MachineTypes
 	var machineCounter int
-	for _, mConf := range machineConfigs {
+	for _, mConf := range factoryConfig.MachineConfigs {
 		mType := mConf.Type
 		machineTypeSet[mType] = struct{}{}
 
@@ -41,7 +41,7 @@ func NewManufactory(machineConfigs []MachineConfigEntry, jobTemplates []JobGraph
 	}
 
 	// check for missing machine type
-	for _, jobTemplate := range jobTemplates {
+	for _, jobTemplate := range factoryConfig.JobTemplates {
 		for _, opTemplate := range jobTemplate.Ops {
 			if _, ok := machineTypeSet[opTemplate.MachineType]; !ok {
 				return nil, &ErrMissingMachineTypeDetail{MachineType: opTemplate.MachineType}
@@ -51,7 +51,7 @@ func NewManufactory(machineConfigs []MachineConfigEntry, jobTemplates []JobGraph
 
 	// check for right topology of operations in template
 	f.templates = make(map[JobTemplateID]JobGraphTemplate)
-	for _, jobTemplate := range jobTemplates {
+	for _, jobTemplate := range factoryConfig.JobTemplates {
 		err := validateOperationsTopology(jobTemplate)
 		if err != nil {
 			return nil, fmt.Errorf("manufactory initialization: %w", err)

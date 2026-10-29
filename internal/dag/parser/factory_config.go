@@ -9,22 +9,22 @@ import (
 	"github.com/velosypedno/jobshop/pkg/dag/core"
 )
 
-func ParseFactoryConfig(filePath string) ([]core.MachineConfigEntry, []core.JobGraphTemplate, error) {
+func ParseFactoryConfig(filePath string) (core.FactoryConfig, error) {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to read config file: %w", err)
+		return core.FactoryConfig{}, fmt.Errorf("failed to read config file: %w", err)
 	}
 
 	var config factoryConfig
 	if err := json.Unmarshal(data, &config); err != nil {
-		return nil, nil, fmt.Errorf("failed to parse json: %w", err)
+		return core.FactoryConfig{}, fmt.Errorf("failed to parse json: %w", err)
 	}
 
 	templates := make([]core.JobGraphTemplate, 0, len(config.JobTemplates))
 	for _, j := range config.JobTemplates {
 		ops, err := convertOps(j.Operations)
 		if err != nil {
-			return nil, nil, err
+			return core.FactoryConfig{}, err
 		}
 
 		edges := make([]core.OpTemplateDependencyEdge, len(j.Edges))
@@ -53,7 +53,10 @@ func ParseFactoryConfig(filePath string) ([]core.MachineConfigEntry, []core.JobG
 		machineConfigEntries = append(machineConfigEntries, mConfigEntry)
 	}
 
-	return machineConfigEntries, templates, nil
+	return core.FactoryConfig{
+		MachineConfigs: machineConfigEntries,
+		JobTemplates:   templates,
+	}, nil
 }
 
 func convertOps(dtos []operationTemplateDTO) (map[core.OpTemplateID]core.OpTemplate, error) {

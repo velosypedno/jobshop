@@ -39,7 +39,7 @@ func main() {
 
 	flag.Parse()
 
-	machinesConfig, templates, err := parser.ParseFactoryConfig(configPath)
+	factoryConfig, err := parser.ParseFactoryConfig(configPath)
 	if err != nil {
 		fmt.Printf("Error parsing factory config: %v\n", err)
 		os.Exit(1)
@@ -51,7 +51,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	manufactory, err := core.NewManufactory(machinesConfig, templates)
+	manufactory, err := core.NewManufactory(factoryConfig)
 	if err != nil {
 		fmt.Printf("Error creating maufactory: %v\n", err)
 		os.Exit(1)

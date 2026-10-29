@@ -101,3 +101,15 @@ func validateOperationsTopology(jobGraphTemplate JobGraphTemplate) error {
 
 	return nil
 }
+
+// allow machines with different names, but equal types
+type MachineConfigEntry struct {
+	Type  MachineType
+	Name  string
+	Count int
+}
+
+type FactoryConfig struct {
+	MachineConfigs []MachineConfigEntry
+	JobTemplates   []JobGraphTemplate
+}
