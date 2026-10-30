@@ -5,3 +5,4 @@ default/
 *.log
 default-dag
 .env
+.env.local

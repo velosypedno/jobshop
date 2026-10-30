@@ -12,6 +12,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/kelseyhightower/envconfig"
 	_ "github.com/lib/pq"
+	"github.com/velosypedno/jobshop/internal/backend/handlers"
+	"github.com/velosypedno/jobshop/internal/backend/repos"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -170,11 +172,23 @@ func (a *App) setupRouter() *gin.Engine {
 		AllowCredentials: a.cfg.CORS.AllowCredentials,
 		MaxAge:           time.Duration(a.cfg.CORS.MaxAge) * time.Second,
 	}))
+	router.GET("/ping", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"message": "pong"})
+	})
+
 	api := router.Group("/api")
+	v1 := api.Group("/v1")
+
+	factoryConfigRepo := repos.NewFactoryConfigRepo(a.DB)
 	{
-		api.GET("/ping", func(c *gin.Context) {
-			c.JSON(http.StatusOK, gin.H{"message": "pong"})
-		})
+		factoryConfigs := v1.Group("/factory-configs")
+		{
+			factoryConfigs.POST("/upload", handlers.NewUploadFactoryConfigHandler(factoryConfigRepo, a.l))
+			factoryConfigs.GET("", handlers.NewListFactoryConfigsHandler(factoryConfigRepo, a.l))
+			factoryConfigs.DELETE("/:id", handlers.NewDeleteFactoryConfigHandler(factoryConfigRepo, a.l))
+			factoryConfigs.GET("/:id", handlers.NewGetFactoryConfigHandler(factoryConfigRepo, a.l))
+		}
+
 	}
 	return router
 }

@@ -3,14 +3,14 @@ package parser
 import (
 	"encoding/json"
 	"fmt"
-	"os"
+	"io"
 	"time"
 
 	"github.com/velosypedno/jobshop/pkg/dag/core"
 )
 
-func ParseFactoryConfig(filePath string) (core.FactoryConfig, error) {
-	data, err := os.ReadFile(filePath)
+func ParseFactoryConfig(file io.Reader) (core.FactoryConfig, error) {
+	data, err := io.ReadAll(file)
 	if err != nil {
 		return core.FactoryConfig{}, fmt.Errorf("failed to read config file: %w", err)
 	}

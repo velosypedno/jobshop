@@ -39,7 +39,12 @@ func main() {
 
 	flag.Parse()
 
-	factoryConfig, err := parser.ParseFactoryConfig(configPath)
+	configFile, err := os.Open(configPath)
+	if err != nil {
+		fmt.Printf("Error opening config file: %v\n", err)
+		os.Exit(1)
+	}
+	factoryConfig, err := parser.ParseFactoryConfig(configFile)
 	if err != nil {
 		fmt.Printf("Error parsing factory config: %v\n", err)
 		os.Exit(1)

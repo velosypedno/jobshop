@@ -1,15 +1,20 @@
-* {
+*, *::before, *::after {
   box-sizing: border-box;
 }
 
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  background-color: #f7f5f0; /* молочний фон */
+  background-color: #f8f9fa;
   color: #202124;
   min-height: 100vh;
   display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding: 48px 16px;
+  flex-direction: column;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }

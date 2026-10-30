@@ -77,6 +77,23 @@ tasks:
                 echo ".env already exists"
             fi
 
+    copy:env:local:
+        desc: Copy default env vars
+        cmds:
+            - cp .env.local.sample .env.local
+        silent: false
+
+    copy:env:local:optional:
+        desc: Ensure .env exists
+        cmds:
+        - |
+            if [ ! -f .env.local ]; then
+                echo ".env.local not found, copying from .env.local.sample"
+                cp .env.local.sample .env.local
+            else
+                echo ".env.local already exists"
+            fi
+
     db:migrate:up:
         desc: Run migrations
         cmds:
@@ -94,7 +111,7 @@ tasks:
 
     backend:run:
         desc: Run in debug mode
-        dotenv: [".env"]
+        dotenv: [".env.local"]
         cmds:
           - go run cmd/backend/main.go
 
