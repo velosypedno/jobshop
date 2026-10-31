@@ -1,6 +1,6 @@
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, memo } from 'react';
 import { ReactFlow, Background, Controls, MarkerType, Position, Handle, ReactFlowProvider } from '@xyflow/react';
-import type { Node, Edge as FlowEdge } from '@xyflow/react';
+import type { Node, Edge as FlowEdge, NodeProps } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Box, Typography, Button } from '@mui/material';
 import DownloadIcon from '@mui/icons-material/Download';
@@ -24,6 +24,89 @@ interface DagNetworkGraphProps {
   edges: Edge[];
   machineColorMap: Record<number, string>;
 }
+
+// 1. Створюємо справжній кастомний вузол React Flow.
+// Тепер бібліотека знає його точні розміри (ширина 240px, висота ~110px), і нічого не накладається.
+const MachineNode = memo(({ data }: NodeProps) => {
+  const { op, machineColor } = data as { op: Operation; machineColor: string };
+
+  return (
+    <Box
+      sx={{
+        p: '14px 16px',
+        borderRadius: '8px',
+        backgroundColor: '#fff',
+        border: '1px solid #dadce0',
+        borderLeft: `5px solid ${machineColor}`,
+        boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+        width: '240px',
+        position: 'relative',
+      }}
+    >
+      {/* Лівий порт (вхід) */}
+      <Handle
+        type="target"
+        position={Position.Left}
+        style={{
+          background: '#9aa0a6',
+          width: '8px',
+          height: '8px',
+          left: '-4px',
+          top: '50%',
+          transform: 'translateY(-50%)',
+          border: '2px solid #fff',
+          borderRadius: '50%',
+        }}
+      />
+      {/* Правий порт (вихід) */}
+      <Handle
+        type="source"
+        position={Position.Right}
+        style={{
+          background: '#9aa0a6',
+          width: '8px',
+          height: '8px',
+          right: '-4px',
+          top: '50%',
+          transform: 'translateY(-50%)',
+          border: '2px solid #fff',
+          borderRadius: '50%',
+        }}
+      />
+
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: '4px' }}>
+        <Typography sx={{ fontSize: '11px', fontWeight: 700, color: '#5f6368' }}>
+          Op #{op.id}
+        </Typography>
+        <Typography
+          sx={{
+            fontSize: '10px',
+            fontWeight: 600,
+            color: machineColor,
+            backgroundColor: `${machineColor}15`,
+            padding: '2px 6px',
+            borderRadius: '4px',
+          }}
+        >
+          Type {op.machine_type}
+        </Typography>
+      </Box>
+      <Typography sx={{ fontSize: '13px', fontWeight: 600, color: '#202124', mb: '6px', lineHeight: 1.3 }}>
+        {op.name}
+      </Typography>
+      <Typography sx={{ fontSize: '12px', color: '#2e7d32', fontWeight: 500 }}>
+        ⏱ {op.processing_time}
+      </Typography>
+    </Box>
+  );
+});
+
+MachineNode.displayName = 'MachineNode';
+
+// Реєструємо типи вузлів поза компонентом, щоб уникнути зайвих ререндерів
+const nodeTypes = {
+  machineNode: MachineNode,
+};
 
 // Авторозміщення через Dagre для горизонтального графа (Left to Right)
 const getLayoutedElements = (nodes: Node[], edges: FlowEdge[]) => {
@@ -59,7 +142,7 @@ const getLayoutedElements = (nodes: Node[], edges: FlowEdge[]) => {
   return { nodes: layoutedNodes, edges };
 };
 
-// Внутрішній компонент для доступу до хуків React Flow (потрібен ReactFlowProvider)
+// Внутрішній компонент для доступу до хуків React Flow
 function FlowContent({ operations, edges, machineColorMap }: DagNetworkGraphProps) {
   const { nodes, edges: flowEdges } = useMemo(() => {
     const initialNodes: Node[] = [];
@@ -70,67 +153,9 @@ function FlowContent({ operations, edges, machineColorMap }: DagNetworkGraphProp
 
       initialNodes.push({
         id: String(op.id),
+        type: 'machineNode', // Використовуємо наш власний тип кастомного вузла
         position: { x: 0, y: 0 },
-        sourcePosition: Position.Right,
-        targetPosition: Position.Left,
-        style: {
-          background: 'transparent',
-          border: 'none',
-          boxShadow: 'none',
-          padding: 0,
-        },
-        data: {
-          label: (
-            <Box
-              sx={{
-                p: '14px 16px',
-                borderRadius: '8px',
-                backgroundColor: '#fff',
-                border: '1px solid #dadce0',
-                borderLeft: `5px solid ${machineColor}`,
-                boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                width: '240px',
-                position: 'relative',
-              }}
-            >
-              <Handle
-                type="target"
-                position={Position.Left}
-                style={{ background: '#9aa0a6', width: '8px', height: '8px', left: '-4px', border: '2px solid #fff' }}
-              />
-              <Handle
-                type="source"
-                position={Position.Right}
-                style={{ background: '#9aa0a6', width: '8px', height: '8px', right: '-4px', border: '2px solid #fff' }}
-              />
-
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: '4px' }}>
-                <Typography sx={{ fontSize: '11px', fontWeight: 700, color: '#5f6368' }}>
-                  Op #{op.id}
-                </Typography>
-                <Typography
-                  sx={{
-                    fontSize: '10px',
-                    fontWeight: 600,
-                    color: machineColor,
-                    backgroundColor: `${machineColor}15`,
-                    padding: '2px 6px',
-                    borderRadius: '4px',
-                  }}
-                >
-                  Type {op.machine_type}
-                </Typography>
-              </Box>
-              <Typography sx={{ fontSize: '13px', fontWeight: 600, color: '#202124', mb: '6px', lineHeight: 1.3 }}>
-                {op.name}
-              </Typography>
-              <Typography sx={{ fontSize: '12px', color: '#2e7d32', fontWeight: 500 }}>
-                ⏱ {op.processing_time}
-              </Typography>
-            </Box>
-          ),
-        },
-        type: 'default',
+        data: { op, machineColor }, // Передаємо дані чистим об'єктом
       });
     });
 
@@ -156,7 +181,6 @@ function FlowContent({ operations, edges, machineColorMap }: DagNetworkGraphProp
 
   // Функція збереження графа у PNG
   const handleDownloadImage = useCallback(() => {
-    // Знаходимо DOM-елементviewport графа
     const viewportElement = document.querySelector('.react-flow__viewport') as HTMLElement;
     if (!viewportElement) return;
 
@@ -178,12 +202,12 @@ function FlowContent({ operations, edges, machineColorMap }: DagNetworkGraphProp
   return (
     <Box sx={{ width: '100%', height: '550px', border: '1px solid #dadce0', borderRadius: '8px', background: '#f8f9fa', position: 'relative' }}>
 
-      {/* Кнопка завантаження картинки у верхньому правому куті */}
+      {/* Кнопка завантаження картинки */}
       <Box sx={{ position: 'absolute', top: '16px', right: '16px', zIndex: 10 }}>
         <Button
           variant="outlined"
           size="small"
-          onClick={handleDownloadImage}
+          onClick={handleDownloadInspector => handleDownloadImage()}
           startIcon={<DownloadIcon />}
           sx={{
             backgroundColor: '#fff',
@@ -207,6 +231,7 @@ function FlowContent({ operations, edges, machineColorMap }: DagNetworkGraphProp
       <ReactFlow
         nodes={nodes}
         edges={flowEdges}
+        nodeTypes={nodeTypes} // Передаємо наш реєстр кастомних вузлів
         fitView
         attributionPosition="bottom-left"
         minZoom={0.2}
@@ -218,7 +243,6 @@ function FlowContent({ operations, edges, machineColorMap }: DagNetworkGraphProp
   );
 }
 
-// Головна обгортка з ReactFlowProvider для роботи експорту
 export function DagNetworkGraph(props: DagNetworkGraphProps) {
   return (
     <ReactFlowProvider>
