@@ -4,6 +4,8 @@ import { Box, Typography, Button, CircularProgress, TextField } from '@mui/mater
 import type { FactoryConfigItem } from '../types'
 import { ConfirmModal, PageCard, PageHeader, MetaInfoBox } from '../components/CommonComponents'
 import { fetchFactoryConfigById, deleteFactoryConfig, updateFactoryConfig } from '../api/factoryConfigs'
+import { FactoryConfigViewer } from '../components/FactoryConfigViewer'
+import type { FactoryConfigData  } from '../components/FactoryConfigViewer'
 
 export function DetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -152,6 +154,7 @@ export function DetailPage() {
         />
       </Box>
 
+      {/* Meta Info Box */}
       <MetaInfoBox
         items={[
           { label: 'ID', value: config.id },
@@ -160,36 +163,8 @@ export function DetailPage() {
         ]}
       />
 
-      {/* JSON Structure Subtitle */}
-      <Typography
-        variant="h6"
-        sx={{
-          fontSize: '18px',
-          color: '#202124',
-          fontWeight: 500,
-        }}
-      >
-        Configuration JSON Structure:
-      </Typography>
-
-      {/* JSON Viewer */}
-      <Box
-        component="pre"
-        sx={{
-          background: '#1e1e1e',
-          color: '#d4d4d4',
-          border: '1px solid #333',
-          padding: '24px',
-          borderRadius: '8px',
-          fontSize: '13px',
-          fontFamily: 'monospace',
-          maxHeight: '70vh',
-          overflow: 'auto',
-          margin: 0,
-        }}
-      >
-        {JSON.stringify(config.config, null, 2)}
-      </Box>
+      {/* Красивий візуалізатор конфігурації (Machines + Job Templates) із опцією перемикання на сирий JSON */}
+      <FactoryConfigViewer configData={config.config as FactoryConfigData} />
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
