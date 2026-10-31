@@ -182,3 +182,47 @@ func NewDeleteFactoryConfigHandler(repo deleteFactoryConfigRepo, logger *zap.Log
 		c.Status(http.StatusNoContent)
 	}
 }
+
+type updateFactoryConfigRepo interface {
+	Update(ctx context.Context, id uuid.UUID, name *string) error
+}
+
+type updateFactoryConfigRequestBody struct {
+	Name *string `json:"name"`
+}
+
+func NewUpdateFactoryConfigHandler(repo updateFactoryConfigRepo, logger *zap.Logger) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		idParam := c.Param("id")
+		id, err := uuid.Parse(idParam)
+		if err != nil {
+			err = fmt.Errorf("update factory config handler: invalid uuid format: %v", err)
+			logger.Error("invalid uuid format", zap.Error(err))
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid uuid format"})
+			return
+		}
+
+		var req updateFactoryConfigRequestBody
+		if err := c.ShouldBindJSON(&req); err != nil {
+			err = fmt.Errorf("update factory config handler: failed to decode request body: %v", err)
+			logger.Error("failed to decode request body", zap.Error(err))
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+			return
+		}
+
+		err = repo.Update(c.Request.Context(), id, req.Name)
+		if errors.Is(err, sql.ErrNoRows) {
+			logger.Warn("factory config not found for update", zap.String("id", idParam))
+			c.JSON(http.StatusNotFound, gin.H{"error": "factory config not found"})
+			return
+		}
+		if err != nil {
+			err = fmt.Errorf("update factory config handler: failed to update: %v", err)
+			logger.Error("failed to update factory config", zap.Error(err))
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.Status(http.StatusNoContent)
+	}
+}

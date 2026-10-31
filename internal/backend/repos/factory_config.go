@@ -139,3 +139,32 @@ func (r *FactoryConfigRepo) List(ctx context.Context) ([]FactoryConfigRecord, er
 
 	return records, nil
 }
+
+func (r *FactoryConfigRepo) Update(ctx context.Context, id uuid.UUID, name *string) error {
+	query := `
+		UPDATE factory_configurations
+		SET name = $1
+		WHERE id = $2
+	`
+
+	var nameVal any = nil
+	if name != nil {
+		nameVal = *name
+	}
+
+	result, err := r.db.ExecContext(ctx, query, nameVal, id)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
+}

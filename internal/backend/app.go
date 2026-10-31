@@ -185,8 +185,9 @@ func (a *App) setupRouter() *gin.Engine {
 		{
 			factoryConfigs.POST("/upload", handlers.NewUploadFactoryConfigHandler(factoryConfigRepo, a.l))
 			factoryConfigs.GET("", handlers.NewListFactoryConfigsHandler(factoryConfigRepo, a.l))
-			factoryConfigs.DELETE("/:id", handlers.NewDeleteFactoryConfigHandler(factoryConfigRepo, a.l))
 			factoryConfigs.GET("/:id", handlers.NewGetFactoryConfigHandler(factoryConfigRepo, a.l))
+			factoryConfigs.PUT("/:id", handlers.NewUpdateFactoryConfigHandler(factoryConfigRepo, a.l))
+			factoryConfigs.DELETE("/:id", handlers.NewDeleteFactoryConfigHandler(factoryConfigRepo, a.l))
 		}
 
 	}
