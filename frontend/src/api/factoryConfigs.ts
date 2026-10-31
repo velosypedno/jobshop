@@ -29,6 +29,17 @@ export async function uploadFactoryConfig(formData: FormData): Promise<void> {
   if (!res.ok) throw new Error('Failed to upload configuration')
 }
 
+export async function updateFactoryConfig(id: string, name: string | null): Promise<void> {
+  const res = await fetch(`${apiBaseUrl}/api/v1/factory-configs/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ name }),
+  })
+  if (!res.ok) throw new Error('Failed to update configuration')
+}
+
 export async function deleteFactoryConfig(id: string): Promise<void> {
   const res = await fetch(`${apiBaseUrl}/api/v1/factory-configs/${id}`, {
     method: 'DELETE',

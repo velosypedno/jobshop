@@ -1,25 +1,45 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Box, Typography, Button, CircularProgress } from '@mui/material'
+import { Box, Typography, Button, CircularProgress, TextField } from '@mui/material'
 import type { FactoryConfigItem } from '../types'
 import { ConfirmModal } from '../components/CommonComponents'
-import { fetchFactoryConfigById, deleteFactoryConfig } from '../api/factoryConfigs'
+import { fetchFactoryConfigById, deleteFactoryConfig, updateFactoryConfig } from '../api/factoryConfigs'
 
 export function DetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [config, setConfig] = useState<FactoryConfigItem | null>(null)
+  const [name, setName] = useState('')
   const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
 
   useEffect(() => {
     if (!id) return
     fetchFactoryConfigById(id)
-      .then((data) => setConfig(data))
+      .then((data) => {
+        setConfig(data)
+        setName(data.name || '')
+      })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false))
   }, [id])
+
+  const handleSave = async () => {
+    if (!id) return
+    setSaving(true)
+    try {
+      await updateFactoryConfig(id, name.trim() || null)
+      if (config) {
+        setConfig({ ...config, name: name.trim() || null })
+      }
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Update failed')
+    } finally {
+      setSaving(false)
+    }
+  }
 
   const handleDelete = async () => {
     if (!id) return
@@ -73,6 +93,8 @@ export function DetailPage() {
     )
   }
 
+  const isNameChanged = name !== (config.name || '')
+
   return (
     <Box
       sx={{
@@ -115,39 +137,75 @@ export function DetailPage() {
         >
           ← Back to List
         </Button>
-        <Button
-          variant="contained"
-          onClick={() => setShowDeleteModal(true)}
-          sx={{
-            backgroundColor: '#d93025',
-            color: '#fff',
-            borderRadius: '6px',
-            padding: '10px 20px',
-            fontSize: '14px',
-            fontWeight: 500,
-            textTransform: 'none',
-            boxShadow: 'none',
-            '&:hover': {
-              backgroundColor: '#c5221f',
-            },
-          }}
-        >
-          Delete Config
-        </Button>
+        <Box sx={{ display: 'flex', gap: '12px' }}>
+          {isNameChanged && (
+            <Button
+              variant="contained"
+              onClick={handleSave}
+              disabled={saving}
+              sx={{
+                backgroundColor: '#2e7d32',
+                color: '#fff',
+                borderRadius: '6px',
+                padding: '10px 20px',
+                fontSize: '14px',
+                fontWeight: 500,
+                textTransform: 'none',
+                boxShadow: 'none',
+                '&:hover': {
+                  backgroundColor: '#1b5e20',
+                },
+              }}
+            >
+              {saving ? 'Saving...' : 'Save Changes'}
+            </Button>
+          )}
+          <Button
+            variant="contained"
+            onClick={() => setShowDeleteModal(true)}
+            sx={{
+              backgroundColor: '#d93025',
+              color: '#fff',
+              borderRadius: '6px',
+              padding: '10px 20px',
+              fontSize: '14px',
+              fontWeight: 500,
+              textTransform: 'none',
+              boxShadow: 'none',
+              '&:hover': {
+                backgroundColor: '#c5221f',
+              },
+            }}
+          >
+            Delete Config
+          </Button>
+        </Box>
       </Box>
 
-      {/* Title */}
-      <Typography
-        variant="h4"
-        sx={{
-          margin: '0 0 20px 0',
-          fontSize: '28px',
-          fontWeight: 400,
-          color: '#202124',
-        }}
-      >
-        {config.name || 'Unnamed'}
-      </Typography>
+      {/* Editable Name Field */}
+      <Box sx={{ marginBottom: '24px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <Typography component="label" sx={{ fontSize: '13px', fontWeight: 500, color: '#5f6368' }}>
+          Configuration Name:
+        </Typography>
+        <TextField
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Enter configuration name..."
+          size="small"
+          variant="outlined"
+          sx={{
+            maxWidth: '400px',
+            background: '#fff',
+            '& .MuiOutlinedInput-root': {
+              borderRadius: '6px',
+              fontSize: '18px',
+              '& fieldset': { borderColor: '#dadce0' },
+              '&:hover fieldset': { borderColor: '#dadce0' },
+              '&.Mui-focused fieldset': { borderColor: '#2e7d32' },
+            },
+          }}
+        />
+      </Box>
 
       {/* Meta Info Box */}
       <Box
