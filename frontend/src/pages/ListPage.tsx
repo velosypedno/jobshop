@@ -15,7 +15,7 @@ import {
   CircularProgress,
 } from '@mui/material'
 import type { FactoryConfigItem } from '../types'
-import { ConfirmModal } from '../components/CommonComponents'
+import { ConfirmModal, PageCard, PageHeader } from '../components/CommonComponents'
 import { fetchFactoryConfigs, uploadFactoryConfig, deleteFactoryConfig } from '../api/factoryConfigs'
 
 export function ListPage() {
@@ -81,59 +81,13 @@ export function ListPage() {
   }
 
   return (
-    <Box
-      sx={{
-        width: '100%',
-        background: '#ffffff',
-        border: '1px solid #dadce0',
-        borderRadius: '12px',
-        borderTop: '8px solid #2e7d32',
-        padding: { xs: '24px', md: '32px 40px' },
-        boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-        display: 'flex',
-        flexDirection: 'column',
-      }}
-    >
+    <PageCard>
       {/* Page Header */}
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '28px',
-          borderBottom: '1px solid #e0e0e0',
-          paddingBottom: '16px',
-        }}
-      >
-        <Button
-          onClick={() => navigate('/')}
-          sx={{
-            background: 'transparent',
-            color: '#2e7d32',
-            padding: 0,
-            fontSize: '15px',
-            fontWeight: 500,
-            textTransform: 'none',
-            '&:hover': {
-              background: 'transparent',
-              textDecoration: 'underline',
-            },
-          }}
-        >
-          ← Back to Home
-        </Button>
-        <Typography
-          variant="h4"
-          sx={{
-            margin: 0,
-            fontSize: '28px',
-            fontWeight: 400,
-            color: '#202124',
-          }}
-        >
-          Factory Configurations
-        </Typography>
-      </Box>
+      <PageHeader
+        title="Factory Configurations"
+        onBack={() => navigate('/')}
+        backLabel="← Back to Home"
+      />
 
       {/* Upload Form */}
       <Box
@@ -143,7 +97,6 @@ export function ListPage() {
           background: '#f8f9fa',
           padding: '24px',
           borderRadius: '8px',
-          marginBottom: '32px',
           border: '1px solid #e0e0e0',
           display: 'flex',
           gap: '20px',
@@ -331,6 +284,6 @@ export function ListPage() {
           onCancel={() => setDeleteTargetId(null)}
         />
       )}
-    </Box>
+    </PageCard>
   )
 }

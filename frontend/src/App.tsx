@@ -12,7 +12,7 @@ export default function App() {
           display: 'flex',
           flexDirection: 'column',
           padding: { xs: '16px', md: '32px 48px' },
-          backgroundColor: '#f8f9fa', // Необов'язковий м'який фон для всієї сторінки
+          backgroundColor: '#f8f9fa',
           boxSizing: 'border-box',
         }}
       >

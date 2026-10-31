@@ -1,42 +1,11 @@
-import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Box, Typography, Button, Divider, Chip } from '@mui/material'
-import { pingApi } from '../api/factoryConfigs'
+import { PageCard } from '../components/CommonComponents'
 
 export function HomePage() {
-  const [status, setStatus] = useState<string>('')
-  const [loading, setLoading] = useState(false)
-  const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080').replace(/\/+$/, '')
-
-  const handlePing = async () => {
-    setLoading(true)
-    setStatus('Pinging...')
-    try {
-      const data = await pingApi()
-      setStatus(`OK: ${JSON.stringify(data)}`)
-    } catch (err: unknown) {
-      setStatus(`Error: ${err instanceof Error ? err.message : 'failed to connect'}`)
-    } finally {
-      setLoading(false)
-    }
-  }
-
   return (
-    <Box
-      sx={{
-        width: '100%',
-        background: '#ffffff',
-        border: '1px solid #dadce0',
-        borderRadius: '12px',
-        borderTop: '8px solid #2e7d32',
-        padding: { xs: '24px', md: '32px 40px' },
-        boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '28px',
-      }}
-    >
-      {/* Top Header & System Status */}
+    <PageCard>
+      {/* Top Header */}
       <Box
         sx={{
           display: 'flex',
@@ -54,46 +23,7 @@ export function HomePage() {
             Advanced JSSP Optimization & Factory Configuration Management System
           </Typography>
         </Box>
-        <Box sx={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-          <Typography component="span" sx={{ fontSize: '13px', color: '#5f6368', fontFamily: 'monospace' }}>
-            {apiBaseUrl}/api/ping
-          </Typography>
-          <Button
-            variant="contained"
-            onClick={handlePing}
-            disabled={loading}
-            sx={{
-              backgroundColor: '#2e7d32',
-              '&:hover': { backgroundColor: '#1b5e20' },
-              textTransform: 'none',
-              padding: '8px 16px',
-              borderRadius: '6px',
-              fontSize: '14px',
-              fontWeight: 500,
-              boxShadow: 'none',
-            }}
-          >
-            {loading ? 'Pinging...' : 'System Ping'}
-          </Button>
-        </Box>
       </Box>
-
-      {status && (
-        <Box
-          sx={{
-            padding: '16px',
-            background: '#f8f9fa',
-            borderRadius: '6px',
-            fontSize: '13px',
-            fontFamily: 'monospace',
-            color: '#3c4043',
-            wordBreak: 'break-all',
-            border: '1px solid #e0e0e0',
-          }}
-        >
-          {status}
-        </Box>
-      )}
 
       <Divider sx={{ borderTop: '1px solid #e0e0e0', m: 0 }} />
 
@@ -445,6 +375,6 @@ export function HomePage() {
         </Box>
 
       </Box>
-    </Box>
+    </PageCard>
   )
 }

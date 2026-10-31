@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Box, Typography, Button, CircularProgress, TextField } from '@mui/material'
 import type { FactoryConfigItem } from '../types'
-import { ConfirmModal } from '../components/CommonComponents'
+import { ConfirmModal, PageCard, PageHeader, MetaInfoBox } from '../components/CommonComponents'
 import { fetchFactoryConfigById, deleteFactoryConfig, updateFactoryConfig } from '../api/factoryConfigs'
 
 export function DetailPage() {
@@ -53,98 +53,62 @@ export function DetailPage() {
 
   if (loading) {
     return (
-      <Box
-        sx={{
-          width: '100%',
-          background: '#ffffff',
-          border: '1px solid #dadce0',
-          borderRadius: '12px',
-          borderTop: '8px solid #2e7d32',
-          padding: '40px',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-        }}
-      >
-        <CircularProgress sx={{ color: '#2e7d32' }} />
-      </Box>
+      <PageCard>
+        <Box sx={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
+          <CircularProgress sx={{ color: '#2e7d32' }} />
+        </Box>
+      </PageCard>
     )
   }
 
   if (error || !config) {
     return (
-      <Box
-        sx={{
-          width: '100%',
-          background: '#ffffff',
-          border: '1px solid #dadce0',
-          borderRadius: '12px',
-          borderTop: '8px solid #d93025',
-          padding: '40px',
-          textAlign: 'center',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-        }}
-      >
-        <Typography sx={{ fontSize: '14px', color: '#d93025' }}>
+      <PageCard borderColor="#d93025">
+        <Typography sx={{ fontSize: '14px', color: '#d93025', textAlign: 'center' }}>
           {error || 'Not found'}
         </Typography>
-      </Box>
+      </PageCard>
     )
   }
 
   const isNameChanged = name !== (config.name || '')
 
   return (
-    <Box
-      sx={{
-        width: '100%',
-        background: '#ffffff',
-        border: '1px solid #dadce0',
-        borderRadius: '12px',
-        borderTop: '8px solid #2e7d32',
-        padding: { xs: '24px', md: '32px 40px' },
-        boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-        display: 'flex',
-        flexDirection: 'column',
-      }}
-    >
+    <PageCard>
       {/* Header Actions */}
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '28px',
-          borderBottom: '1px solid #e0e0e0',
-          paddingBottom: '16px',
-        }}
-      >
-        <Button
-          onClick={() => navigate('/configs')}
-          sx={{
-            background: 'transparent',
-            color: '#2e7d32',
-            padding: 0,
-            fontSize: '15px',
-            fontWeight: 500,
-            textTransform: 'none',
-            '&:hover': {
-              background: 'transparent',
-              textDecoration: 'underline',
-            },
-          }}
-        >
-          ← Back to List
-        </Button>
-        <Box sx={{ display: 'flex', gap: '12px' }}>
-          {isNameChanged && (
+      <PageHeader
+        title=""
+        onBack={() => navigate('/configs')}
+        backLabel="← Back to List"
+        action={
+          <Box sx={{ display: 'flex', gap: '12px' }}>
+            {isNameChanged && (
+              <Button
+                variant="contained"
+                onClick={handleSave}
+                disabled={saving}
+                sx={{
+                  backgroundColor: '#2e7d32',
+                  color: '#fff',
+                  borderRadius: '6px',
+                  padding: '10px 20px',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  textTransform: 'none',
+                  boxShadow: 'none',
+                  '&:hover': {
+                    backgroundColor: '#1b5e20',
+                  },
+                }}
+              >
+                {saving ? 'Saving...' : 'Save Changes'}
+              </Button>
+            )}
             <Button
               variant="contained"
-              onClick={handleSave}
-              disabled={saving}
+              onClick={() => setShowDeleteModal(true)}
               sx={{
-                backgroundColor: '#2e7d32',
+                backgroundColor: '#d93025',
                 color: '#fff',
                 borderRadius: '6px',
                 padding: '10px 20px',
@@ -153,37 +117,18 @@ export function DetailPage() {
                 textTransform: 'none',
                 boxShadow: 'none',
                 '&:hover': {
-                  backgroundColor: '#1b5e20',
+                  backgroundColor: '#c5221f',
                 },
               }}
             >
-              {saving ? 'Saving...' : 'Save Changes'}
+              Delete Config
             </Button>
-          )}
-          <Button
-            variant="contained"
-            onClick={() => setShowDeleteModal(true)}
-            sx={{
-              backgroundColor: '#d93025',
-              color: '#fff',
-              borderRadius: '6px',
-              padding: '10px 20px',
-              fontSize: '14px',
-              fontWeight: 500,
-              textTransform: 'none',
-              boxShadow: 'none',
-              '&:hover': {
-                backgroundColor: '#c5221f',
-              },
-            }}
-          >
-            Delete Config
-          </Button>
-        </Box>
-      </Box>
+          </Box>
+        }
+      />
 
       {/* Editable Name Field */}
-      <Box sx={{ marginBottom: '24px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
         <Typography component="label" sx={{ fontSize: '13px', fontWeight: 500, color: '#5f6368' }}>
           Configuration Name:
         </Typography>
@@ -207,37 +152,18 @@ export function DetailPage() {
         />
       </Box>
 
-      {/* Meta Info Box */}
-      <Box
-        sx={{
-          display: 'flex',
-          gap: { xs: '16px', md: '32px' },
-          fontSize: '14px',
-          color: '#5f6368',
-          marginBottom: '24px',
-          flexWrap: 'wrap',
-          background: '#f8f9fa',
-          padding: '16px 20px',
-          borderRadius: '8px',
-          border: '1px solid #e0e0e0',
-        }}
-      >
-        <Typography component="span" sx={{ fontSize: '14px', color: '#5f6368' }}>
-          <strong>ID:</strong> {config.id}
-        </Typography>
-        <Typography component="span" sx={{ fontSize: '14px', color: '#5f6368' }}>
-          <strong>Version:</strong> {config.version}
-        </Typography>
-        <Typography component="span" sx={{ fontSize: '14px', color: '#5f6368' }}>
-          <strong>Created At:</strong> {new Date(config.created_at).toLocaleString()}
-        </Typography>
-      </Box>
+      <MetaInfoBox
+        items={[
+          { label: 'ID', value: config.id },
+          { label: 'Version', value: config.version },
+          { label: 'Created At', value: new Date(config.created_at).toLocaleString() },
+        ]}
+      />
 
       {/* JSON Structure Subtitle */}
       <Typography
         variant="h6"
         sx={{
-          margin: '24px 0 12px 0',
           fontSize: '18px',
           color: '#202124',
           fontWeight: 500,
@@ -274,6 +200,6 @@ export function DetailPage() {
           onCancel={() => setShowDeleteModal(false)}
         />
       )}
-    </Box>
+    </PageCard>
   )
 }
