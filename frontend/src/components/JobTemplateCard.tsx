@@ -1,9 +1,12 @@
 import { useState } from 'react'
-import { Box, Typography, Paper, Chip, Button, Collapse } from '@mui/material'
+import { Box, Typography, Paper, Chip, Button, Collapse, ToggleButton, ToggleButtonGroup } from '@mui/material'
 import AccountTreeIcon from '@mui/icons-material/AccountTree'
+import ViewStreamIcon from '@mui/icons-material/ViewStream'
+import GrainIcon from '@mui/icons-material/Grain'
 import TimerIcon from '@mui/icons-material/Timer'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
+import { DagNetworkGraph } from './DagNetworkGraph'
 
 interface Operation {
   id: number
@@ -32,6 +35,7 @@ export function JobTemplateCard({
   machineColorMap: Record<number, string>
 }) {
   const [expanded, setExpanded] = useState(false)
+  const [viewMode, setViewMode] = useState<'graph' | 'list'>('graph') // За замовчуванням показуємо граф
 
   return (
     <Paper
@@ -92,16 +96,44 @@ export function JobTemplateCard({
 
       {/* Список операцій та зв'язків (Розгортається) */}
       <Collapse in={expanded} timeout="auto" unmountOnExit>
-        <Box sx={{ p: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <Box sx={{ p: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
-          {/* Операції */}
-          <Box>
-            <Typography sx={{ fontSize: '12px', fontWeight: 600, color: '#5f6368', textTransform: 'uppercase', mb: '8px', letterSpacing: '0.5px' }}>
-              Operations Pipeline
+          {/* Панель перемикання режимів (Graph Flow / List View) */}
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+            <Typography sx={{ fontSize: '12px', fontWeight: 600, color: '#5f6368', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Operations Pipeline Topology
             </Typography>
+
+            <ToggleButtonGroup
+              value={viewMode}
+              exclusive
+              onChange={(_, newMode) => newMode && setViewMode(newMode)}
+              size="small"
+              sx={{
+                backgroundColor: '#f1f3f4',
+                '& .MuiToggleButton-root': { textTransform: 'none', fontSize: '12px', px: '12px', py: '4px' }
+              }}
+            >
+              <ToggleButton value="graph">
+                <GrainIcon sx={{ fontSize: '16px', mr: '6px' }} /> Graph Flow
+              </ToggleButton>
+              <ToggleButton value="list">
+                <ViewStreamIcon sx={{ fontSize: '16px', mr: '6px' }} /> List View
+              </ToggleButton>
+            </ToggleButtonGroup>
+          </Box>
+
+          {/* Відображення: або інтерактивний граф React Flow, або класичний список */}
+          {viewMode === 'graph' ? (
+            <DagNetworkGraph
+              operations={template.operations}
+              edges={template.edges}
+              machineColorMap={machineColorMap}
+            />
+          ) : (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {template.operations.map((op) => {
-                const machineColor = machineColorMap[op.machine_type] || '#5f6368';
+                const machineColor = machineColorMap[op.machine_type] || '#5f6368'
 
                 return (
                   <Box
@@ -114,7 +146,7 @@ export function JobTemplateCard({
                       borderRadius: '6px',
                       backgroundColor: '#fff',
                       border: '1px solid #e0e0e0',
-                      borderLeft: `4px solid ${machineColor}`, // Кольорова акцентна смужка зліва для типу машини
+                      borderLeft: `4px solid ${machineColor}`,
                     }}
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -129,7 +161,7 @@ export function JobTemplateCard({
                         size="small"
                         sx={{
                           fontSize: '11px',
-                          backgroundColor: `${machineColor}15`, // Прозорий колір фону на основі основного
+                          backgroundColor: `${machineColor}15`,
                           color: machineColor,
                           fontWeight: 600,
                           border: `1px solid ${machineColor}40`
@@ -143,13 +175,13 @@ export function JobTemplateCard({
                       />
                     </Box>
                   </Box>
-                );
+                )
               })}
             </Box>
-          </Box>
+          )}
 
-          {/* Залежності (Edges / DAG) */}
-          {template.edges.length > 0 && (
+          {/* Ребра / Залежності у вигляді плашок (якщо потрібні длявідладки) */}
+          {template.edges.length > 0 && viewMode === 'list' && (
             <Box>
               <Typography sx={{ fontSize: '12px', fontWeight: 600, color: '#5f6368', textTransform: 'uppercase', mb: '6px', letterSpacing: '0.5px' }}>
                 DAG Dependencies (Edges)
