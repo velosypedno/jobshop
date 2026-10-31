@@ -24,7 +24,13 @@ interface JobTemplate {
   edges: Edge[]
 }
 
-export function JobTemplateCard({ template }: { template: JobTemplate }) {
+export function JobTemplateCard({
+  template,
+  machineColorMap
+}: {
+  template: JobTemplate;
+  machineColorMap: Record<number, string>
+}) {
   const [expanded, setExpanded] = useState(false)
 
   return (
@@ -94,41 +100,51 @@ export function JobTemplateCard({ template }: { template: JobTemplate }) {
               Operations Pipeline
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {template.operations.map((op) => (
-                <Box
-                  key={op.id}
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    p: '10px 14px',
-                    borderRadius: '6px',
-                    backgroundColor: '#fff',
-                    border: '1px solid #e0e0e0',
-                  }}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <Chip label={`#${op.id}`} size="small" sx={{ height: '22px', fontSize: '11px', fontWeight: 600 }} />
-                    <Typography sx={{ fontSize: '14px', fontWeight: 500, color: '#202124' }}>
-                      {op.name}
-                    </Typography>
+              {template.operations.map((op) => {
+                const machineColor = machineColorMap[op.machine_type] || '#5f6368';
+
+                return (
+                  <Box
+                    key={op.id}
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      p: '10px 14px',
+                      borderRadius: '6px',
+                      backgroundColor: '#fff',
+                      border: '1px solid #e0e0e0',
+                      borderLeft: `4px solid ${machineColor}`, // Кольорова акцентна смужка зліва для типу машини
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <Chip label={`#${op.id}`} size="small" sx={{ height: '22px', fontSize: '11px', fontWeight: 600 }} />
+                      <Typography sx={{ fontSize: '14px', fontWeight: 500, color: '#202124' }}>
+                        {op.name}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <Chip
+                        label={`Machine Type: ${op.machine_type}`}
+                        size="small"
+                        sx={{
+                          fontSize: '11px',
+                          backgroundColor: `${machineColor}15`, // Прозорий колір фону на основі основного
+                          color: machineColor,
+                          fontWeight: 600,
+                          border: `1px solid ${machineColor}40`
+                        }}
+                      />
+                      <Chip
+                        icon={<TimerIcon style={{ fontSize: '14px' }} />}
+                        label={op.processing_time}
+                        size="small"
+                        sx={{ backgroundColor: '#e8f5e9', color: '#2e7d32', fontWeight: 500, fontSize: '12px' }}
+                      />
+                    </Box>
                   </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <Chip
-                      label={`Machine Type: ${op.machine_type}`}
-                      size="small"
-                      variant="outlined"
-                      sx={{ fontSize: '11px', borderColor: '#dadce0', color: '#5f6368' }}
-                    />
-                    <Chip
-                      icon={<TimerIcon style={{ fontSize: '14px' }} />}
-                      label={op.processing_time}
-                      size="small"
-                      sx={{ backgroundColor: '#e8f5e9', color: '#2e7d32', fontWeight: 500, fontSize: '12px' }}
-                    />
-                  </Box>
-                </Box>
-              ))}
+                );
+              })}
             </Box>
           </Box>
 

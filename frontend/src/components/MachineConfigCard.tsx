@@ -1,5 +1,6 @@
 import { Box, Typography, Paper, Chip } from '@mui/material'
 import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing'
+import { getMachineBackgroundColor } from '../utils/colorUtils'
 
 interface MachineItem {
   type_id: number
@@ -7,7 +8,9 @@ interface MachineItem {
   count: number
 }
 
-export function MachineConfigCard({ machine }: { machine: MachineItem }) {
+export function MachineConfigCard({ machine, color }: { machine: MachineItem; color: string }) {
+  const bgColor = getMachineBackgroundColor(machine.type_id);
+
   return (
     <Paper
       elevation={0}
@@ -20,7 +23,7 @@ export function MachineConfigCard({ machine }: { machine: MachineItem }) {
         alignItems: 'center',
         justifyContent: 'space-between',
         transition: 'all 0.2s',
-        '&:hover': { borderColor: '#2e7d32', boxShadow: '0 2px 8px rgba(46, 125, 50, 0.08)' },
+        '&:hover': { borderColor: color, boxShadow: `0 2px 8px rgba(0, 0, 0, 0.06)` },
       }}
     >
       <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -29,8 +32,8 @@ export function MachineConfigCard({ machine }: { machine: MachineItem }) {
             width: 40,
             height: 40,
             borderRadius: '8px',
-            backgroundColor: '#e8f5e9',
-            color: '#2e7d32',
+            backgroundColor: bgColor,
+            color: color,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Box, Typography, Button } from '@mui/material'
 import CodeIcon from '@mui/icons-material/Code'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import { MachineConfigCard } from './MachineConfigCard'
 import { JobTemplateCard } from './JobTemplateCard'
+import { buildMachineColorMap } from '../utils/colorUtils'
 
 export interface FactoryConfigData {
   machines: Array<{ type_id: number; type_name: string; count: number }>
@@ -17,6 +18,11 @@ export interface FactoryConfigData {
 
 export function FactoryConfigViewer({ configData }: { configData: FactoryConfigData }) {
   const [showRawJson, setShowRawJson] = useState(false)
+
+  // Генеруємо мапу кольорів на основі всіх доступних машин
+  const machineColorMap = useMemo(() => {
+    return buildMachineColorMap(configData?.machines || [])
+  }, [configData?.machines])
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -43,7 +49,6 @@ export function FactoryConfigViewer({ configData }: { configData: FactoryConfigD
       </Box>
 
       {showRawJson ? (
-        // Сирий JSON (якщо хочеться перевірити)
         <Box
           component="pre"
           sx={{
@@ -62,7 +67,6 @@ export function FactoryConfigViewer({ configData }: { configData: FactoryConfigD
           {JSON.stringify(configData, null, 2)}
         </Box>
       ) : (
-        // Красивий структурований інтерфейс
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
 
           {/* СЕКЦІЯ 1: Список машин (Machines) */}
@@ -72,7 +76,11 @@ export function FactoryConfigViewer({ configData }: { configData: FactoryConfigD
             </Typography>
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: '16px' }}>
               {configData.machines?.map((machine) => (
-                <MachineConfigCard key={machine.type_id} machine={machine} />
+                <MachineConfigCard
+                  key={machine.type_id}
+                  machine={machine}
+                  color={machineColorMap[machine.type_id]}
+                />
               ))}
             </Box>
           </Box>
@@ -84,7 +92,11 @@ export function FactoryConfigViewer({ configData }: { configData: FactoryConfigD
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {configData.job_templates?.map((template) => (
-                <JobTemplateCard key={template.id} template={template} />
+                <JobTemplateCard
+                  key={template.id}
+                  template={template}
+                  machineColorMap={machineColorMap}
+                />
               ))}
             </Box>
           </Box>
