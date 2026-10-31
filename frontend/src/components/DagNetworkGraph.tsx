@@ -207,7 +207,7 @@ function FlowContent({ operations, edges, machineColorMap }: DagNetworkGraphProp
         <Button
           variant="outlined"
           size="small"
-          onClick={handleDownloadInspector => handleDownloadImage()}
+          onClick={() => handleDownloadImage()}
           startIcon={<DownloadIcon />}
           sx={{
             backgroundColor: '#fff',
