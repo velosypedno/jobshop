@@ -1,6 +1,7 @@
 package core
 
 import (
+	"encoding/json"
 	"fmt"
 )
 
@@ -68,7 +69,44 @@ type OrderEntry struct {
 	Amount int
 }
 
-func (f *Manufactory) NewProblem(orders []OrderEntry) (*Problem, error) {
+type Order []OrderEntry
+
+type orderEntryDTO struct {
+	JobTemplateID int `json:"job_template_id"`
+	Amount        int `json:"amount"`
+}
+
+type orderDTO []orderEntryDTO
+
+func (o Order) ToJSON() ([]byte, error) {
+	dtos := make(orderDTO, len(o))
+	for i, entry := range o {
+		dtos[i] = orderEntryDTO{
+			JobTemplateID: int(entry.JobTemplateID),
+			Amount:        entry.Amount,
+		}
+	}
+	return json.Marshal(dtos)
+}
+
+func OrderFromJSON(data []byte) (Order, error) {
+	var dtos orderDTO
+	if err := json.Unmarshal(data, &dtos); err != nil {
+		return nil, err
+	}
+
+	order := make(Order, len(dtos))
+	for i, dto := range dtos {
+		order[i] = OrderEntry{
+			JobTemplateID: JobTemplateID(dto.JobTemplateID),
+			Amount:        dto.Amount,
+		}
+	}
+
+	return order, nil
+}
+
+func (f *Manufactory) NewProblem(orders Order) (*Problem, error) {
 	for _, order := range orders {
 		if _, ok := f.templates[order.JobTemplateID]; !ok {
 			return nil, &ErrUnknownJobTemplateDetail{ID: order.JobTemplateID}

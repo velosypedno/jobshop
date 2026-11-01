@@ -50,7 +50,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	orders, err := parser.ParseOrders(ordersPath)
+	ordersFile, err := os.Open(ordersPath)
+	if err != nil {
+		fmt.Printf("Error opening orders file: %v\n", err)
+		os.Exit(1)
+	}
+	orders, err := parser.ParseOrders(ordersFile)
 	if err != nil {
 		fmt.Printf("Error parsing orders: %v\n", err)
 		os.Exit(1)

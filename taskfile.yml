@@ -95,14 +95,16 @@ tasks:
             fi
 
     db:migrate:up:
-        desc: Run migrations
+        desc: Run migrations (optional specify count, e.g., task db:migrate:up -- 1)
+        dotenv: [".env.local"]
         cmds:
-          - migrate -database "${DB_DRIVER}://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=disable" -path db/migrations up
+          - migrate -database "${DB_DRIVER}://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=disable" -path db/migrations up {{.CLI_ARGS}}
 
     db:migrate:down:
-        desc: Run database migrations down
+        desc: Run database migrations down (optional specify count, e.g., task db:migrate:down -- 1)
+        dotenv: [".env.local"]
         cmds:
-            - migrate -database "${DB_DRIVER}://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=disable" -path db/migrations down
+            - migrate -database "${DB_DRIVER}://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=disable" -path db/migrations down {{.CLI_ARGS}}
 
     db:migrate:create:
         desc: Create new migration file
