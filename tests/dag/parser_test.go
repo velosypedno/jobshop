@@ -1,6 +1,7 @@
 package dag_test
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -15,9 +16,13 @@ func TestParseFactoryConfig(main *testing.T) {
 	main.Run("SequentialJobs", func(t *testing.T) {
 		// Arrange
 		fixturePath := filepath.Join("fixtures", "sequential_jobs.json")
+		file, err := os.Open(fixturePath)
+		require.NoError(t, err)
 
 		// Act
-		machines, templates, err := parser.ParseFactoryConfig(fixturePath)
+		factoryConfig, err := parser.ParseFactoryConfig(file)
+		machines := factoryConfig.MachineConfigs
+		templates := factoryConfig.JobTemplates
 
 		// Assert
 		require.NoError(t, err)
@@ -69,9 +74,13 @@ func TestParseFactoryConfig(main *testing.T) {
 	main.Run("TreeJobs", func(t *testing.T) {
 		// Arrange
 		fixturePath := filepath.Join("fixtures", "tree_jobs.json")
+		file, err := os.Open(fixturePath)
+		require.NoError(t, err)
 
 		// Act
-		machines, templates, err := parser.ParseFactoryConfig(fixturePath)
+		factoryConfig, err := parser.ParseFactoryConfig(file)
+		machines := factoryConfig.MachineConfigs
+		templates := factoryConfig.JobTemplates
 
 		// Assert
 		require.NoError(t, err)
@@ -139,9 +148,13 @@ func TestParseFactoryConfig(main *testing.T) {
 	main.Run("GraphJobs", func(t *testing.T) {
 		// Arrange
 		fixturePath := filepath.Join("fixtures", "graph_jobs.json")
+		file, err := os.Open(fixturePath)
+		require.NoError(t, err)
 
 		// Act
-		machines, templates, err := parser.ParseFactoryConfig(fixturePath)
+		factoryConfig, err := parser.ParseFactoryConfig(file)
+		machines := factoryConfig.MachineConfigs
+		templates := factoryConfig.JobTemplates
 
 		// Assert
 		require.NoError(t, err)

@@ -1,6 +1,7 @@
 package core
 
 import (
+	"encoding/json"
 	"fmt"
 )
 
@@ -22,14 +23,14 @@ type Manufactory struct {
 // 2. So allowed entries with the same MachineType, but different names.
 //
 // 3. Even entirely duplicated MachineConfigEntry are allowed, they will not ruin invariants, and will not cause errors
-func NewManufactory(machineConfigs []MachineConfigEntry, jobTemplates []JobGraphTemplate) (*Manufactory, error) {
+func NewManufactory(factoryConfig FactoryConfig) (*Manufactory, error) {
 	f := &Manufactory{}
 
-	machineTypeSet := make(map[MachineType]struct{}, len(machineConfigs))
+	machineTypeSet := make(map[MachineType]struct{}, len(factoryConfig.MachineConfigs))
 
 	// create machines and set of available MachineTypes
 	var machineCounter int
-	for _, mConf := range machineConfigs {
+	for _, mConf := range factoryConfig.MachineConfigs {
 		mType := mConf.Type
 		machineTypeSet[mType] = struct{}{}
 
@@ -41,7 +42,7 @@ func NewManufactory(machineConfigs []MachineConfigEntry, jobTemplates []JobGraph
 	}
 
 	// check for missing machine type
-	for _, jobTemplate := range jobTemplates {
+	for _, jobTemplate := range factoryConfig.JobTemplates {
 		for _, opTemplate := range jobTemplate.Ops {
 			if _, ok := machineTypeSet[opTemplate.MachineType]; !ok {
 				return nil, &ErrMissingMachineTypeDetail{MachineType: opTemplate.MachineType}
@@ -51,8 +52,8 @@ func NewManufactory(machineConfigs []MachineConfigEntry, jobTemplates []JobGraph
 
 	// check for right topology of operations in template
 	f.templates = make(map[JobTemplateID]JobGraphTemplate)
-	for _, jobTemplate := range jobTemplates {
-		err := validateOperationsTopology(jobTemplate)
+	for _, jobTemplate := range factoryConfig.JobTemplates {
+		err := jobTemplate.validateOperationsTopology()
 		if err != nil {
 			return nil, fmt.Errorf("manufactory initialization: %w", err)
 		}
@@ -68,7 +69,44 @@ type OrderEntry struct {
 	Amount int
 }
 
-func (f *Manufactory) NewProblem(orders []OrderEntry) (*Problem, error) {
+type Order []OrderEntry
+
+type orderEntryDTO struct {
+	JobTemplateID int `json:"job_template_id"`
+	Amount        int `json:"amount"`
+}
+
+type orderDTO []orderEntryDTO
+
+func (o Order) ToJSON() ([]byte, error) {
+	dtos := make(orderDTO, len(o))
+	for i, entry := range o {
+		dtos[i] = orderEntryDTO{
+			JobTemplateID: int(entry.JobTemplateID),
+			Amount:        entry.Amount,
+		}
+	}
+	return json.Marshal(dtos)
+}
+
+func OrderFromJSON(data []byte) (Order, error) {
+	var dtos orderDTO
+	if err := json.Unmarshal(data, &dtos); err != nil {
+		return nil, err
+	}
+
+	order := make(Order, len(dtos))
+	for i, dto := range dtos {
+		order[i] = OrderEntry{
+			JobTemplateID: JobTemplateID(dto.JobTemplateID),
+			Amount:        dto.Amount,
+		}
+	}
+
+	return order, nil
+}
+
+func (f *Manufactory) NewProblem(orders Order) (*Problem, error) {
 	for _, order := range orders {
 		if _, ok := f.templates[order.JobTemplateID]; !ok {
 			return nil, &ErrUnknownJobTemplateDetail{ID: order.JobTemplateID}

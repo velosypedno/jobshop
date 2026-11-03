@@ -3,28 +3,62 @@ package parser
 import (
 	"encoding/json"
 	"fmt"
-	"os"
+	"io"
 	"time"
 
 	"github.com/velosypedno/jobshop/pkg/dag/core"
 )
 
-func ParseFactoryConfig(filePath string) ([]core.MachineConfigEntry, []core.JobGraphTemplate, error) {
-	data, err := os.ReadFile(filePath)
+type factoryConfig struct {
+	Machines     []machineConfigDTO `json:"machines"`
+	JobTemplates []jobTemplateDTO   `json:"job_templates"`
+}
+
+type machineConfigDTO struct {
+	TypeID   int    `json:"type_id"`
+	TypeName string `json:"type_name"`
+	Count    int    `json:"count"`
+}
+
+type (
+	jobTemplateDTO struct {
+		ID int `json:"id"`
+
+		Name       string                 `json:"name"`
+		Operations []operationTemplateDTO `json:"operations"`
+		Edges      []edge                 `json:"edges"`
+	}
+
+	edge struct {
+		FromOpID int `json:"from_op_id"`
+		ToOpID   int `json:"to_op_id"`
+	}
+
+	operationTemplateDTO struct {
+		ID int `json:"id"`
+
+		Name           string `json:"name"`
+		MachineType    int    `json:"machine_type"`
+		ProcessingTime string `json:"processing_time"`
+	}
+)
+
+func ParseFactoryConfig(file io.Reader) (core.FactoryConfig, error) {
+	data, err := io.ReadAll(file)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to read config file: %w", err)
+		return core.FactoryConfig{}, fmt.Errorf("failed to read config file: %w", err)
 	}
 
 	var config factoryConfig
 	if err := json.Unmarshal(data, &config); err != nil {
-		return nil, nil, fmt.Errorf("failed to parse json: %w", err)
+		return core.FactoryConfig{}, fmt.Errorf("failed to parse json: %w", err)
 	}
 
 	templates := make([]core.JobGraphTemplate, 0, len(config.JobTemplates))
 	for _, j := range config.JobTemplates {
 		ops, err := convertOps(j.Operations)
 		if err != nil {
-			return nil, nil, err
+			return core.FactoryConfig{}, err
 		}
 
 		edges := make([]core.OpTemplateDependencyEdge, len(j.Edges))
@@ -53,7 +87,10 @@ func ParseFactoryConfig(filePath string) ([]core.MachineConfigEntry, []core.JobG
 		machineConfigEntries = append(machineConfigEntries, mConfigEntry)
 	}
 
-	return machineConfigEntries, templates, nil
+	return core.FactoryConfig{
+		MachineConfigs: machineConfigEntries,
+		JobTemplates:   templates,
+	}, nil
 }
 
 func convertOps(dtos []operationTemplateDTO) (map[core.OpTemplateID]core.OpTemplate, error) {

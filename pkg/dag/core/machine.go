@@ -22,10 +22,3 @@ func NewMachine(id MachineID, machineType MachineType, machineName string) Machi
 		Name: machineName,
 	}
 }
-
-// allow machines with different names, but equal types
-type MachineConfigEntry struct {
-	Type  MachineType
-	Name  string
-	Count int
-}

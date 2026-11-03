@@ -39,19 +39,29 @@ func main() {
 
 	flag.Parse()
 
-	machinesConfig, templates, err := parser.ParseFactoryConfig(configPath)
+	configFile, err := os.Open(configPath)
+	if err != nil {
+		fmt.Printf("Error opening config file: %v\n", err)
+		os.Exit(1)
+	}
+	factoryConfig, err := parser.ParseFactoryConfig(configFile)
 	if err != nil {
 		fmt.Printf("Error parsing factory config: %v\n", err)
 		os.Exit(1)
 	}
 
-	orders, err := parser.ParseOrders(ordersPath)
+	ordersFile, err := os.Open(ordersPath)
+	if err != nil {
+		fmt.Printf("Error opening orders file: %v\n", err)
+		os.Exit(1)
+	}
+	orders, err := parser.ParseOrders(ordersFile)
 	if err != nil {
 		fmt.Printf("Error parsing orders: %v\n", err)
 		os.Exit(1)
 	}
 
-	manufactory, err := core.NewManufactory(machinesConfig, templates)
+	manufactory, err := core.NewManufactory(factoryConfig)
 	if err != nil {
 		fmt.Printf("Error creating maufactory: %v\n", err)
 		os.Exit(1)

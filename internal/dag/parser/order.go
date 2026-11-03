@@ -3,7 +3,7 @@ package parser
 import (
 	"encoding/json"
 	"fmt"
-	"os"
+	"io"
 
 	"github.com/velosypedno/jobshop/pkg/dag/core"
 )
@@ -17,8 +17,8 @@ type orderDTO struct {
 	Amount        int `json:"amount"`
 }
 
-func ParseOrders(filePath string) ([]core.OrderEntry, error) {
-	data, err := os.ReadFile(filePath)
+func ParseOrders(file io.Reader) (core.Order, error) {
+	data, err := io.ReadAll(file)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read orders file: %w", err)
 	}

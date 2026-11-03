@@ -1,39 +1,123 @@
 version: '3'
 
 includes:
-  tree:
-    taskfile: taskfile-tree.yml
-  dag:
-    taskfile: taskfile-dag.yml
+    tree:
+        taskfile: taskfile-tree.yml
+    dag:
+        taskfile: taskfile-dag.yml
+    docker:
+        taskfile: taskfile-docker.yml
 
 
 tasks:
-  default:
-    desc: List available tasks
-    cmds:
-      - task --list-all
+    default:
+        desc: List available tasks
+        cmds:
+        - task --list-all
 
-  tidy:
-    desc: Tidy go modules
-    cmds:
-      - go mod tidy
+    tidy:
+        desc: Tidy go modules
+        cmds:
+        - go mod tidy
 
-  vendor:
-    desc: Create vendor directory
-    cmds:
-      - go mod vendor
+    vendor:
+        desc: Create vendor directory
+        cmds:
+        - go mod vendor
 
-  download:
-    desc: Download dependencies
-    cmds:
-      - go mod download
+    download:
+        desc: Download dependencies
+        cmds:
+        - go mod download
 
-  lint:
-    desc: Run local linter config
-    cmds:
-      - golangci-lint run
+    lint:
+        desc: Run local linter config
+        cmds:
+        - golangci-lint run
 
-  install:linter:
-    desc: Install linter
-    cmds:
-      - go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+    install:linter:
+        desc: Install linter
+        cmds:
+        - go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+
+    install:migrator:
+        desc: Install migrator
+        cmds:
+          - go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.16.2
+
+    db:migrate:up:
+        desc: Run migrations
+        cmds:
+          - migrate -database "${DB_DRIVER}://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=disable" -path db/migrations up
+
+    db:migrate:down:
+        desc: Run database migrations down
+        cmds:
+            - migrate -database "${DB_DRIVER}://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=disable" -path db/migrations down
+
+    db:migrate:create:
+        desc: Create new migration file
+        cmds:
+            - go run -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.16.2 create -ext sql -dir ./db/migrations -seq {{.CLI_ARGS}}
+
+    copy:env:
+        desc: Copy default env vars
+        cmds:
+            - cp .env.sample .env
+        silent: false
+
+    copy:env:optional:
+        desc: Ensure .env exists
+        cmds:
+        - |
+            if [ ! -f .env ]; then
+                echo ".env not found, copying from .env.sample"
+                cp .env.sample .env
+            else
+                echo ".env already exists"
+            fi
+
+    copy:env:local:
+        desc: Copy default env vars
+        cmds:
+            - cp .env.local.sample .env.local
+        silent: false
+
+    copy:env:local:optional:
+        desc: Ensure .env exists
+        cmds:
+        - |
+            if [ ! -f .env.local ]; then
+                echo ".env.local not found, copying from .env.local.sample"
+                cp .env.local.sample .env.local
+            else
+                echo ".env.local already exists"
+            fi
+
+    db:migrate:up:
+        desc: Run migrations (optional specify count, e.g., task db:migrate:up -- 1)
+        dotenv: [".env.local"]
+        cmds:
+          - migrate -database "${DB_DRIVER}://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=disable" -path db/migrations up {{.CLI_ARGS}}
+
+    db:migrate:down:
+        desc: Run database migrations down (optional specify count, e.g., task db:migrate:down -- 1)
+        dotenv: [".env.local"]
+        cmds:
+            - migrate -database "${DB_DRIVER}://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=disable" -path db/migrations down {{.CLI_ARGS}}
+
+    db:migrate:create:
+        desc: Create new migration file
+        cmds:
+            - migrate create -ext sql -dir ./db/migrations -seq {{.CLI_ARGS}}
+
+    backend:run:
+        desc: Run in debug mode
+        dotenv: [".env.local"]
+        cmds:
+          - go run cmd/backend/main.go
+
+    backend:build:
+        desc: Build the binary
+        cmds:
+            - go build -o ./bin/backend cmd/backned/main.go
