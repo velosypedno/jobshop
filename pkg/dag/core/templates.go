@@ -47,28 +47,28 @@ func (j *JobGraphTemplate) AddEdge(from, to OpTemplateID) {
 	j.Edges = append(j.Edges, OpTemplateDependencyEdge{from, to})
 }
 
-func validateOperationsTopology(jobGraphTemplate JobGraphTemplate) error {
+func (t *JobGraphTemplate) validateOperationsTopology() error {
 	// check all edge endpoint IDs exist
-	for _, edge := range jobGraphTemplate.Edges {
-		if _, ok := jobGraphTemplate.Ops[edge.From]; !ok {
+	for _, edge := range t.Edges {
+		if _, ok := t.Ops[edge.From]; !ok {
 			return &ErrUnknownOpTemplateDetail{ID: edge.From}
 		}
-		if _, ok := jobGraphTemplate.Ops[edge.To]; !ok {
+		if _, ok := t.Ops[edge.To]; !ok {
 			return &ErrUnknownOpTemplateDetail{ID: edge.To}
 		}
 	}
 
 	// detect cycles via Kahn's algorithm
-	inDegreeMap := make(map[OpTemplateID]int, len(jobGraphTemplate.Ops))
-	for _, opTemplate := range jobGraphTemplate.Ops {
+	inDegreeMap := make(map[OpTemplateID]int, len(t.Ops))
+	for _, opTemplate := range t.Ops {
 		inDegreeMap[opTemplate.ID] = 0
 	}
-	for _, edge := range jobGraphTemplate.Edges {
+	for _, edge := range t.Edges {
 		inDegreeMap[edge.To]++
 	}
 
 	successorsMap := make(map[OpTemplateID][]OpTemplateID)
-	for _, edge := range jobGraphTemplate.Edges {
+	for _, edge := range t.Edges {
 		successorsMap[edge.From] = append(successorsMap[edge.From], edge.To)
 	}
 

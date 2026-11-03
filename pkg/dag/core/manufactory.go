@@ -53,7 +53,7 @@ func NewManufactory(factoryConfig FactoryConfig) (*Manufactory, error) {
 	// check for right topology of operations in template
 	f.templates = make(map[JobTemplateID]JobGraphTemplate)
 	for _, jobTemplate := range factoryConfig.JobTemplates {
-		err := validateOperationsTopology(jobTemplate)
+		err := jobTemplate.validateOperationsTopology()
 		if err != nil {
 			return nil, fmt.Errorf("manufactory initialization: %w", err)
 		}

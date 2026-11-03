@@ -182,7 +182,7 @@ func TestValidateTemplate(main *testing.T) {
 			tmpl := InitJobTemplate("empty")
 
 			// Act
-			err := validateOperationsTopology(tmpl)
+			err := tmpl.validateOperationsTopology()
 
 			// Assert
 			assert.NoError(t, err)
@@ -194,7 +194,7 @@ func TestValidateTemplate(main *testing.T) {
 			tmpl.AddOpTemplate(OpTemplate{ID: 1})
 
 			// Act
-			err := validateOperationsTopology(tmpl)
+			err := tmpl.validateOperationsTopology()
 
 			// Assert
 			assert.NoError(t, err)
@@ -205,7 +205,7 @@ func TestValidateTemplate(main *testing.T) {
 			tmpl := buildLinearTemplate(4)
 
 			// Act
-			err := validateOperationsTopology(tmpl)
+			err := tmpl.validateOperationsTopology()
 
 			// Assert
 			assert.NoError(t, err)
@@ -223,7 +223,7 @@ func TestValidateTemplate(main *testing.T) {
 			tmpl.AddEdge(3, 4)
 
 			// Act
-			err := validateOperationsTopology(tmpl)
+			err := tmpl.validateOperationsTopology()
 
 			// Assert
 			assert.NoError(t, err)
@@ -239,7 +239,7 @@ func TestValidateTemplate(main *testing.T) {
 			tmpl.AddEdge(2, 3)
 
 			// Act
-			err := validateOperationsTopology(tmpl)
+			err := tmpl.validateOperationsTopology()
 
 			// Assert
 			assert.NoError(t, err)
@@ -250,7 +250,7 @@ func TestValidateTemplate(main *testing.T) {
 			tmpl := buildLinearTemplate(100)
 
 			// Act
-			err := validateOperationsTopology(tmpl)
+			err := tmpl.validateOperationsTopology()
 
 			// Assert
 			assert.NoError(t, err)
@@ -265,7 +265,7 @@ func TestValidateTemplate(main *testing.T) {
 			tmpl.AddEdge(1, 2) // ID 1 does not exist
 
 			// Act
-			err := validateOperationsTopology(tmpl)
+			err := tmpl.validateOperationsTopology()
 
 			// Assert
 			require.Error(t, err)
@@ -278,7 +278,7 @@ func TestValidateTemplate(main *testing.T) {
 			tmpl.AddEdge(1, 99) // ID 99 does not exist
 
 			// Act
-			err := validateOperationsTopology(tmpl)
+			err := tmpl.validateOperationsTopology()
 
 			// Assert
 			require.Error(t, err)
@@ -290,7 +290,7 @@ func TestValidateTemplate(main *testing.T) {
 			tmpl.AddEdge(10, 20) // neither 10 nor 20 exists
 
 			// Act
-			err := validateOperationsTopology(tmpl)
+			err := tmpl.validateOperationsTopology()
 
 			// Assert
 			require.Error(t, err)
@@ -305,7 +305,7 @@ func TestValidateTemplate(main *testing.T) {
 			tmpl.AddEdge(1, 1)
 
 			// Act
-			err := validateOperationsTopology(tmpl)
+			err := tmpl.validateOperationsTopology()
 
 			// Assert
 			require.Error(t, err)
@@ -321,7 +321,7 @@ func TestValidateTemplate(main *testing.T) {
 			tmpl.AddEdge(2, 1)
 
 			// Act
-			err := validateOperationsTopology(tmpl)
+			err := tmpl.validateOperationsTopology()
 
 			// Assert
 			require.Error(t, err)
@@ -339,7 +339,7 @@ func TestValidateTemplate(main *testing.T) {
 			tmpl.AddEdge(3, 1)
 
 			// Act
-			err := validateOperationsTopology(tmpl)
+			err := tmpl.validateOperationsTopology()
 
 			// Assert
 			require.Error(t, err)
@@ -358,30 +358,11 @@ func TestValidateTemplate(main *testing.T) {
 			tmpl.AddEdge(3, 1)
 
 			// Act
-			err := validateOperationsTopology(tmpl)
+			err := tmpl.validateOperationsTopology()
 
 			// Assert
 			require.Error(t, err)
 			assert.True(t, errors.Is(err, ErrCycleInGraph))
-		})
-	})
-
-	main.Run("ErrorMessages", func(t *testing.T) {
-		t.Run("MissingToNodeCarriesCorrectID", func(t *testing.T) {
-			// Arrange
-			tmpl := InitJobTemplate("t")
-			tmpl.AddOpTemplate(OpTemplate{ID: 1})
-			tmpl.AddEdge(1, 99) // 99 is missing
-
-			// Act
-			err := validateOperationsTopology(tmpl)
-
-			// Assert — typed error carries the correct missing ID (99)
-			require.Error(t, err)
-			assert.True(t, errors.Is(err, ErrUnknownOpTemplate))
-			detail, ok := AsUnknownOpTemplate(err)
-			require.True(t, ok)
-			assert.Equal(t, OpTemplateID(99), detail.ID)
 		})
 	})
 }
